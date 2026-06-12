@@ -106,6 +106,31 @@ html {
   background: var(--surface);
 }
 
+/* Status bar tint probe for iOS 26 Safari, which ignores theme-color and
+   instead tints its chrome from the background-color of a fixed element
+   touching the top edge (≥80% wide, ≥3px tall, within 4px of the edge);
+   without one it samples the body color once at load and never again, so
+   theme switches would leave a stale tint. Sits behind the topbar (same
+   surface color), so it is never actually visible. Mobile-only: on the
+   desktop layout a full-width surface strip would cross the content area. */
+.statusbar-tint {
+  display: none;
+}
+
+@media (max-width: 720px) {
+  .statusbar-tint {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 6px;
+    background: var(--surface);
+    z-index: 50;
+    pointer-events: none;
+  }
+}
+
 body {
   margin: 0;
   font-family: var(--font-sans);
@@ -224,24 +249,6 @@ a:hover {
   color: var(--text-secondary);
 }
 
-.sidebar-footer {
-  margin-top: auto;
-  border-top: 1px solid var(--border);
-  padding: 12px 10px 0;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.service-state {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12.5px;
-  font-weight: 500;
-  color: var(--text-secondary);
-}
-
 .state-dot {
   width: 8px;
   height: 8px;
@@ -260,16 +267,6 @@ a:hover {
 
 .state-dot.bad {
   background: var(--danger);
-}
-
-.state-dot.pulse {
-  animation: pulse 1.4s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  50% {
-    opacity: 0.35;
-  }
 }
 
 /* ---------- server picker ---------- */
@@ -1502,21 +1499,6 @@ a:hover {
   border-radius: 2px;
 }
 
-/* ---------- tools ---------- */
-
-.tool-columns {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
-  align-items: start;
-}
-
-@media (max-width: 860px) {
-  .tool-columns {
-    grid-template-columns: 1fr;
-  }
-}
-
 /* ---------- drawer / dialog ---------- */
 
 .overlay {
@@ -1899,6 +1881,10 @@ body:has(> #root > .page.terminal-page) {
   cursor: pointer;
 }
 
+a.nav-line {
+  text-decoration: none;
+}
+
 .nav-line.static {
   cursor: default;
 }
@@ -2047,11 +2033,6 @@ body:has(> #root > .page.terminal-page) {
     letter-spacing: -0.015em;
   }
 
-  .mobile-topbar .service-state {
-    margin-inline-start: auto;
-    min-width: 0;
-  }
-
   .sidebar {
     position: fixed;
     top: 0;
@@ -2078,9 +2059,20 @@ body:has(> #root > .page.terminal-page) {
     display: block;
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.32);
     z-index: 55;
     animation: fade-in 0.15s ease;
+  }
+
+  /* The dim lives on a pseudo-element: iOS 26 Safari tints the status bar
+     from the background-color of fixed elements touching the top edge
+     (pseudo-elements are exempt), and a stale tint sticks after the scrim
+     unmounts (WebKit bug 300965). Keeping the fixed element itself
+     transparent leaves the tint on #statusbar-tint. */
+  .sidebar-scrim::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.32);
   }
 
   @keyframes fade-in {

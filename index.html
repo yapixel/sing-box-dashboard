@@ -4,8 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="color-scheme" content="light dark" />
-    <!-- Status bar tint; must match --surface in global.css (the topbar color).
-         Static media variants so iOS picks the right one before JS runs. -->
+    <!-- Chrome tint for browsers that still honor theme-color (Chrome, Safari
+         15–18); must match --surface in global.css (the topbar color). Static
+         media variants so the right one applies before JS runs. iOS 26 Safari
+         ignores these and samples #statusbar-tint instead. -->
     <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f0f0f0" />
     <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#181818" />
     <script>
@@ -65,6 +67,9 @@
     <title>sing-box dashboard</title>
   </head>
   <body>
+    <!-- Sampling target for the iOS 26 Safari status bar tint; static so the
+         first paint already carries the right color. See global.css. -->
+    <div id="statusbar-tint" class="statusbar-tint" aria-hidden="true"></div>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

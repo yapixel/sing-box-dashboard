@@ -24,15 +24,6 @@ export const TRANSLATIONS = {
   "Toggle navigation": { "zh-Hans": "切换导航", "zh-Hant": "切換導航", "fa": "تغییر وضعیت ناوبری", "ru": "Показать или скрыть навигацию" },
   "Manage servers...": { "zh-Hans": "管理服务器...", "zh-Hant": "管理伺服器...", "fa": "مدیریت سرورها...", "ru": "Управление серверами..." },
 
-  // service states
-  "Unreachable": { "zh-Hans": "无法连接", "zh-Hant": "無法連接", "fa": "غیرقابل دسترس", "ru": "Недоступен" },
-  "Connecting": { "zh-Hans": "连接中", "zh-Hant": "連接中", "fa": "در حال اتصال", "ru": "Подключение" },
-  "Running": { "zh-Hans": "运行中", "zh-Hant": "運行中", "fa": "در حال اجرا", "ru": "Работает" },
-  "Starting": { "zh-Hans": "启动中", "zh-Hant": "啟動中", "fa": "در حال شروع", "ru": "Запуск" },
-  "Stopping": { "zh-Hans": "停止中", "zh-Hant": "停止中", "fa": "در حال توقف", "ru": "Остановка" },
-  "Fatal": { "zh-Hans": "致命错误", "zh-Hant": "致命錯誤", "fa": "خطای مهلک", "ru": "Сбой" },
-  "Idle": { "zh-Hans": "空闲", "zh-Hant": "閒置", "fa": "بیکار", "ru": "Простой" },
-
   // deprecated warnings
   "Deprecated Warning": { "zh-Hans": "弃用警告", "zh-Hant": "棄用警告", "fa": "هشدارهای منسوخ‌شدن", "ru": "Предупреждение об устаревании" },
   "Ok": { "zh-Hans": "好", "zh-Hant": "好", "fa": "باشه", "ru": "ОК" },
@@ -205,9 +196,8 @@ export const TRANSLATIONS = {
   "Endpoint not found": { "zh-Hans": "未找到端点", "zh-Hant": "未找到端點", "fa": "نقطه اتصال یافت نشد", "ru": "Точка подключения не найдена" },
   "Connected": { "zh-Hans": "已连接", "zh-Hant": "已連線", "fa": "متصل", "ru": "Подключено" },
   "Not connected": { "zh-Hans": "未连接", "zh-Hant": "未連線", "fa": "متصل نیست", "ru": "Не подключено" },
-  "Login": { "zh-Hans": "登录", "zh-Hant": "登錄", "fa": "ورود", "ru": "Вход" },
   "Open auth URL": { "zh-Hans": "打开认证链接", "zh-Hant": "開啟認證連結", "fa": "باز کردن لینک احراز هویت", "ru": "Открыть URL авторизации" },
-  "QR code": { "zh-Hans": "二维码", "zh-Hant": "二維碼", "fa": "کد QR", "ru": "QR-код" },
+  "Show auth URL QR code": { "zh-Hans": "显示认证链接二维码", "zh-Hant": "顯示認證連結 QR 碼", "fa": "نمایش QR کد لینک احراز هویت", "ru": "Показать QR-код авторизации" },
   "Auth URL": { "zh-Hans": "认证链接", "zh-Hant": "認證連結", "fa": "لینک احراز هویت", "ru": "URL авторизации" },
   "This device": { "zh-Hans": "此设备", "zh-Hant": "此裝置", "fa": "این دستگاه", "ru": "Это устройство" },
   "Exit node": { "zh-Hans": "出口节点", "zh-Hant": "出口節點", "fa": "گره خروجی", "ru": "Выходной узел" },

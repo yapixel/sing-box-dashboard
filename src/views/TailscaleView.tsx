@@ -266,31 +266,26 @@ function StatusCard(props: {
             onClick={props.onOpenExitPicker}
           />
         )}
+        {endpoint.authURL !== "" && (
+          <>
+            <a className="nav-line" href={endpoint.authURL} target="_blank" rel="noreferrer">
+              <Icon name="open_in_new" size={15} />
+              <span className="nav-line-label">{t("Open auth URL")}</span>
+            </a>
+            <button className="nav-line" onClick={props.onOpenAuthQR}>
+              <Icon name="qr_code" size={15} />
+              <span className="nav-line-label">{t("Show auth URL QR code")}</span>
+            </button>
+          </>
+        )}
       </div>
-      {endpoint.authURL !== "" && (
-        <DataLine
-          label={t("Login")}
-          value={
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-              <a className="icon-link" href={endpoint.authURL} target="_blank" rel="noreferrer">
-                <Icon name="open_in_new" size={13} />
-                {t("Open auth URL")}
-              </a>
-              <span style={{ color: "var(--text-faint)" }}>·</span>
-              <button className="link-button icon-link" onClick={props.onOpenAuthQR}>
-                <Icon name="qr_code" size={13} />
-                {t("QR code")}
-              </button>
-            </span>
-          }
-        />
-      )}
     </Card>
   );
 }
 
-// Rows inside the Status card, mirroring the State/This Device/Exit Node
-// ListItems in sing-box-for-android (PowerSettingsNew/Computer/Router icons).
+// Rows inside the Status card, mirroring the State/This Device/Exit Node/auth
+// ListItems in sing-box-for-android (PowerSettingsNew/Computer/Router/
+// OpenInNew/QrCode2 icons).
 function NavLine(props: { icon: IconName; label: string; value: string; onClick: () => void }) {
   return (
     <button className="nav-line" onClick={props.onClick}>
@@ -365,21 +360,23 @@ function PeerRow(props: { peer: TailscalePeer; onOpen: () => void; onConnectSSH?
         <span className={`state-dot ${peer.online ? "good" : ""}`} />
         <span className="peer-name">{peerDisplayName(peer)}</span>
         <span className="peer-address">{peer.tailscaleIPs[0] ?? ""}</span>
-        <span className="badges">
-          {peer.shareeNode && <Badge tone="danger">{t("Shared in")}</Badge>}
-          {peer.exitNode && <Badge tone="info">{t("Exit node")}</Badge>}
-          {peer.expired && <Badge tone="danger">{t("Expired")}</Badge>}
-          {!peer.expired &&
-            peer.keyExpiry > 0n &&
-            Number(peer.keyExpiry) * 1000 - now < 30 * 86400_000 && (
-              <Badge>
-                {t("Expires {time}", {
-                  time: formatRelativeTime(Number(peer.keyExpiry) * 1000, now, language),
-                })}
-              </Badge>
-            )}
-          {peer.sshHostKeys.length > 0 && <Badge tone="good">SSH</Badge>}
-        </span>
+        {peer.online && (
+          <span className="badges">
+            {peer.shareeNode && <Badge tone="danger">{t("Shared in")}</Badge>}
+            {peer.exitNode && <Badge tone="info">{t("Exit node")}</Badge>}
+            {peer.expired && <Badge tone="danger">{t("Expired")}</Badge>}
+            {!peer.expired &&
+              peer.keyExpiry > 0n &&
+              Number(peer.keyExpiry) * 1000 - now < 30 * 86400_000 && (
+                <Badge>
+                  {t("Expires {time}", {
+                    time: formatRelativeTime(Number(peer.keyExpiry) * 1000, now, language),
+                  })}
+                </Badge>
+              )}
+            {peer.sshHostKeys.length > 0 && <Badge tone="good">SSH</Badge>}
+          </span>
+        )}
       </button>
       {props.onConnectSSH && (
         <OthersMenu icon="more_horiz">

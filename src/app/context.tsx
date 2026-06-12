@@ -62,14 +62,36 @@ export function applyTheme(preference: ThemePreference) {
   document.documentElement.dataset.theme = dark ? "dark" : "light";
 
   // Keep theme-color in sync with the topbar surface for browsers that use
-  // it (Chrome, desktop Safari tab tint). iOS Safari ignores theme-color and
-  // tints its chrome from the canvas background plus color-scheme, which the
-  // html/:root rules in global.css handle. Update both per-scheme metas so an
-  // explicit preference wins over the media query Safari matched against.
+  // it (Chrome, Safari 15–18). Update both per-scheme metas so an explicit
+  // preference wins over the media query the browser matched against.
   const surface = getComputedStyle(document.documentElement).getPropertyValue("--surface").trim();
   if (surface) {
     document.querySelectorAll('meta[name="theme-color"]').forEach((meta) => {
       meta.setAttribute("content", surface);
+    });
+  }
+
+  // iOS 26 Safari ignores theme-color and tints the status bar from the
+  // .statusbar-tint probe (see global.css). It only samples a fixed element
+  // when a new node enters the render tree: color changes on a registered
+  // element go unnoticed, and removals are dropped too (WebKit bug 300965),
+  // so display-toggling the same node nets out to nothing. Swap in a fresh
+  // clone, and since even that may coalesce into a no-op if WebKit diffs the
+  // fixed-element set by shape rather than node identity, also flash a twin
+  // probe on top for two frames — the same insert-then-remove sequence as
+  // the drawer scrim, which provably re-tints; its dropped removal leaves
+  // the new color registered, which is exactly the color we want shown.
+  const tint = document.getElementById("statusbar-tint");
+  if (tint) {
+    const fresh = tint.cloneNode(true) as HTMLElement;
+    tint.replaceWith(fresh);
+    const flash = fresh.cloneNode(true) as HTMLElement;
+    flash.removeAttribute("id");
+    document.body.appendChild(flash);
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        flash.remove();
+      });
     });
   }
 }

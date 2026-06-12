@@ -294,7 +294,6 @@ function ShellContent(props: {
           <Icon name={menuOpen ? "close" : "menu"} size={18} />
         </button>
         <div className="mobile-topbar-brand">sing-box</div>
-        <ServiceStateLine />
       </header>
       {menuOpen && <div className="sidebar-scrim" onClick={() => setMenuOpen(false)} />}
       <nav className={menuOpen ? "sidebar open" : "sidebar"}>
@@ -312,9 +311,6 @@ function ShellContent(props: {
         {navItem("logs", t("Logs"), "text_snippet", route.page === "logs")}
         {navItem("tools", t("Tools"), "terminal", route.page.startsWith("tools"))}
         {navItem("settings", t("Settings"), "settings", route.page === "settings")}
-        <div className="sidebar-footer">
-          <ServiceStateLine />
-        </div>
       </nav>
       <main className="content">
         {route.page === "overview" && <OverviewView />}
@@ -478,52 +474,5 @@ function DeprecatedWarningDialog(props: { warning: DeprecatedWarning; onDismiss:
         )}
       </div>
     </Dialog>
-  );
-}
-
-function ServiceStateLine() {
-  const api = useApi();
-  const { t } = useI18n();
-  const serviceStatus = useStream(api.serviceStatus);
-
-  const statusType = serviceStatus.data.status?.status;
-
-  let dotClass = "state-dot";
-  let label: string;
-  if (serviceStatus.phase === "error") {
-    dotClass += " bad";
-    label = t("Unreachable");
-  } else if (serviceStatus.phase === "connecting") {
-    dotClass += " medium pulse";
-    label = t("Connecting");
-  } else {
-    switch (statusType) {
-      case ServiceStatus_Type.STARTED:
-        dotClass += " good";
-        label = t("Running");
-        break;
-      case ServiceStatus_Type.STARTING:
-        dotClass += " medium pulse";
-        label = t("Starting");
-        break;
-      case ServiceStatus_Type.STOPPING:
-        dotClass += " medium";
-        label = t("Stopping");
-        break;
-      case ServiceStatus_Type.FATAL:
-        dotClass += " bad";
-        label = t("Fatal");
-        break;
-      default:
-        label = t("Idle");
-        break;
-    }
-  }
-
-  return (
-    <div className="service-state" title={serviceStatus.error}>
-      <span className={dotClass} />
-      {label}
-    </div>
   );
 }

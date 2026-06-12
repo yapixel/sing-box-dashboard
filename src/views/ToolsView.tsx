@@ -198,7 +198,7 @@ export function NetworkQualityView() {
   return (
     <div className="page">
       <ToolsPageHeader title={t("Network Quality")} />
-      <div className="tool-columns">
+      <div className="settings-stack">
         <Card>
           <Field label={t("Configuration URL")}>
             <input
@@ -364,7 +364,7 @@ export function STUNTestView() {
   return (
     <div className="page">
       <ToolsPageHeader title={t("STUN Test")} />
-      <div className="tool-columns">
+      <div className="settings-stack">
         <Card>
           <Field label={t("Server")}>
             <input
