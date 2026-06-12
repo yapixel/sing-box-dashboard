@@ -1,11 +1,14 @@
-import type { StreamSnapshot } from "../api/stream";
+import { isTerminalCode, type StreamSnapshot } from "../api/stream";
+import { useStreamOutage } from "../app/hooks";
 import { useI18n, type MessageKey } from "../app/i18n";
 import { Icon, type IconName } from "./Icon";
 import { EmptyState } from "./ui";
 
-export function StreamBanner(props: { snapshot: StreamSnapshot<unknown>; subject: MessageKey }) {
+// Presentational form for views that latch the outage themselves (LogsView
+// gates its body on the same value).
+export function StreamErrorBanner(props: { error: string | null; subject: MessageKey }) {
   const { t } = useI18n();
-  if (props.snapshot.phase !== "error") {
+  if (props.error === null) {
     return null;
   }
   return (
@@ -14,12 +17,21 @@ export function StreamBanner(props: { snapshot: StreamSnapshot<unknown>; subject
       <div>
         {t("Failed to subscribe to {subject}: {error}", {
           subject: t(props.subject),
-          error: props.snapshot.error ?? "",
+          error: props.error,
         })}
         <div className="hint">{t("Check the server address and secret in Settings.")}</div>
       </div>
     </div>
   );
+}
+
+// The error appears only once the outage outlasts the reconnect grace
+// period (terminal errors immediately), matching the connection-lost
+// takeover in App.tsx — a stream briefly killed by backgrounding the page
+// must not flash a banner.
+export function StreamBanner(props: { snapshot: StreamSnapshot<unknown>; subject: MessageKey }) {
+  const outage = useStreamOutage(props.snapshot, isTerminalCode(props.snapshot.errorCode));
+  return <StreamErrorBanner error={outage} subject={props.subject} />;
 }
 
 // The scaffolding every stream-backed list view repeats: the error banner,
@@ -34,12 +46,11 @@ export function StreamStates(props: {
   emptyMessage: string;
 }) {
   const { t } = useI18n();
+  const outage = useStreamOutage(props.snapshot, isTerminalCode(props.snapshot.errorCode));
   return (
     <>
-      <StreamBanner snapshot={props.snapshot} subject={props.subject} />
-      {!props.loaded && props.snapshot.phase !== "error" && (
-        <EmptyState>{t("Loading...")}</EmptyState>
-      )}
+      <StreamErrorBanner error={outage} subject={props.subject} />
+      {!props.loaded && outage === null && <EmptyState>{t("Loading...")}</EmptyState>}
       {props.loaded && props.empty && (
         <EmptyState icon={props.emptyIcon}>{props.emptyMessage}</EmptyState>
       )}

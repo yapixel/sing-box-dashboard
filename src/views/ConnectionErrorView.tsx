@@ -5,7 +5,7 @@ import { useI18n } from "../app/i18n";
 import { Icon } from "../components/Icon";
 import { Spinner } from "../components/ui";
 import { ServerDialog } from "./SettingsView";
-import { describeConnectMessage } from "./SetupView";
+import { useDiagnosedConnectError } from "./SetupView";
 
 // Full-screen takeover shown when the daemon cannot be reached: lets the
 // user retry immediately, fix the server entry, or jump to another server
@@ -20,6 +20,7 @@ export function ConnectionErrorView(props: {
 }) {
   const { t } = useI18n();
   const [editing, setEditing] = useState(false);
+  const errorDetail = useDiagnosedConnectError(props.error, props.server.url);
   const { servers } = props.serversState;
   const others = servers.filter((server) => server.id !== props.server.id);
 
@@ -54,7 +55,7 @@ export function ConnectionErrorView(props: {
         </div>
         <div className="banner error">
           <Icon name="warning_amber" />
-          <div>{describeConnectMessage(props.error, t)}</div>
+          <div>{errorDetail}</div>
         </div>
         <div className="row-actions" style={{ marginTop: 14 }}>
           <button className="button primary" disabled={props.reconnecting} onClick={props.onRetry}>

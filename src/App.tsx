@@ -9,7 +9,7 @@ import {
 } from "./api/config";
 import { DaemonApi } from "./api/daemon";
 import { formatDateTime, formatUptime, isHttpUrl } from "./api/format";
-import { useStream } from "./api/stream";
+import { isTerminalCode, useStream } from "./api/stream";
 import { ServiceStatus_Type, type DeprecatedWarning } from "./gen/daemon/started_service_pb";
 import {
   ApiContext,
@@ -27,10 +27,10 @@ import {
   type ThemePreference,
 } from "./app/context";
 import { dismissError, useCurrentError } from "./app/errorStore";
-import { useDismiss, useUnaryOnce } from "./app/hooks";
+import { useDismiss, useStreamOutage, useUnaryOnce } from "./app/hooks";
 import { I18nProvider, useI18n } from "./app/i18n";
 import { Icon, type IconName } from "./components/Icon";
-import { Dialog } from "./components/ui";
+import { Dialog, Spinner } from "./components/ui";
 import { SSH_DEFAULT_TERMINAL_TYPE, SSH_DEFAULT_USERNAME } from "./lib/tailscaleSSH";
 import { ConnectionErrorView } from "./views/ConnectionErrorView";
 import { ConnectionsView } from "./views/ConnectionsView";
@@ -251,18 +251,37 @@ function ShellContent(props: {
   const groups = useStream(api.groups);
   const [menuOpen, setMenuOpen] = useState(false);
 
-  // Latched while the daemon is unreachable: set as soon as the stream errors,
-  // cleared only once it delivers again — the reconnect loop cycling back
-  // through "connecting" keeps the takeover screen up instead of bouncing
-  // to the dashboard between attempts.
-  const [lostError, setLostError] = useState<string | null>(null);
+  // Latched while the daemon is unreachable, cleared only once the stream
+  // delivers again — the reconnect loop cycling back through "connecting"
+  // keeps the takeover screen up instead of bouncing to the dashboard
+  // between attempts. Errors a retry cannot fix and first-connect failures
+  // latch immediately; once data has flowed, a recoverable error first gets
+  // a grace period of silent reconnection (stale data stays up) so a stream
+  // killed by backgrounding the page never flashes the error screen.
+  const lostError = useStreamOutage(
+    serviceStatus,
+    isTerminalCode(serviceStatus.errorCode) || serviceStatus.data.status === null,
+  );
+
+  // A page restored from the background has had its streams killed by the
+  // browser and may sit mid-backoff; kick every stream the moment the page
+  // is visible again (or the network returns) so recovery lands within the
+  // grace period above instead of after it.
   useEffect(() => {
-    if (serviceStatus.phase === "active") {
-      setLostError(null);
-    } else if (serviceStatus.phase === "error") {
-      setLostError(serviceStatus.error ?? "");
-    }
-  }, [serviceStatus.phase, serviceStatus.error]);
+    const kick = () => {
+      if (!document.hidden) {
+        api.retryNow();
+      }
+    };
+    document.addEventListener("visibilitychange", kick);
+    window.addEventListener("pageshow", kick);
+    window.addEventListener("online", kick);
+    return () => {
+      document.removeEventListener("visibilitychange", kick);
+      window.removeEventListener("pageshow", kick);
+      window.removeEventListener("online", kick);
+    };
+  }, [api]);
 
   // Fetch the version once the daemon is reachable; daemons predating
   // GetVersion reject with Unimplemented, leaving the subtitle absent.
@@ -306,6 +325,21 @@ function ShellContent(props: {
         serversState={props.serversState}
         onServersChange={props.onServersChange}
       />
+    );
+  }
+
+  // First connect to this server: nothing to show yet, so a quiet splash
+  // stands in for the dashboard until the first status arrives (the error
+  // latch above takes over if it never does).
+  if (serviceStatus.data.status === null) {
+    return (
+      <div className="connecting-view">
+        <div className="setup-brand">
+          sing-box
+          <small>dashboard</small>
+        </div>
+        <Spinner />
+      </div>
     );
   }
 
@@ -391,6 +425,16 @@ function ShellContent(props: {
           <ServersView serversState={props.serversState} onServersChange={props.onServersChange} />
         )}
       </main>
+      {/* Reaching this point with a non-active stream means the reconnect
+          grace period is running: stale data stays up, with this floating
+          hint as the only cue. Its delayed fade-in keeps an instant
+          recovery (e.g. returning from the background) invisible. */}
+      {serviceStatus.phase !== "active" && (
+        <div className="reconnect-pill" role="status">
+          <Spinner />
+          {t("Reconnecting...")}
+        </div>
+      )}
       {started && <DeprecatedWarningsGate />}
     </div>
   );

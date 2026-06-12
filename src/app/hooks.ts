@@ -1,5 +1,66 @@
 import { useEffect, useRef, useState, type RefObject } from "react";
 
+import type { StreamSnapshot } from "../api/stream";
+
+// How long a stream that already delivered data may stay failing before its
+// outage is surfaced (the connection-lost takeover, the per-view error
+// banners). The reconnect loop retries at roughly t=1/3/6 s (1/2/3 s backoff
+// steps), so anything shorter than ~6 s would expire inside the gap before
+// the third attempt and flash an error for an outage that attempt was about
+// to fix.
+export const RECONNECT_GRACE_MS = 6500;
+
+// Latched error message for a failing stream: null while the stream is
+// healthy or the outage is still within the grace period, the error text
+// once latched — immediately when `immediate` holds (errors a retry cannot
+// fix, first-connect failures). Cleared only when the stream delivers
+// again, and the timer spans the error → connecting → error cycles of the
+// reconnect loop, so the result neither bounces nor re-arms between
+// attempts.
+export function useStreamOutage(
+  snapshot: StreamSnapshot<unknown>,
+  immediate: boolean,
+  graceMs = RECONNECT_GRACE_MS,
+): string | null {
+  const [outage, setOutage] = useState<string | null>(null);
+  // The message is latched through a ref because the "connecting" snapshot
+  // between attempts carries no error fields.
+  const lastError = useRef("");
+  const timer = useRef<number | null>(null);
+  useEffect(() => {
+    const cancel = () => {
+      if (timer.current !== null) {
+        clearTimeout(timer.current);
+        timer.current = null;
+      }
+    };
+    if (snapshot.phase === "active") {
+      cancel();
+      setOutage(null);
+    } else if (snapshot.phase === "error") {
+      lastError.current = snapshot.error ?? "";
+      if (immediate) {
+        cancel();
+        setOutage(lastError.current);
+      } else if (timer.current === null) {
+        timer.current = window.setTimeout(() => {
+          timer.current = null;
+          setOutage(lastError.current);
+        }, graceMs);
+      }
+    }
+  }, [snapshot, immediate, graceMs]);
+  useEffect(() => {
+    const pending = timer;
+    return () => {
+      if (pending.current !== null) {
+        clearTimeout(pending.current);
+      }
+    };
+  }, []);
+  return outage;
+}
+
 // Menus register here while open; Escape dismisses only the topmost one.
 // Dialogs and drawers are native <dialog> elements that close through their
 // cancel event instead — the preventDefault below also stops that default

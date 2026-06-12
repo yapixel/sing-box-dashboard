@@ -1,12 +1,13 @@
 import { memo, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 
 import { pad2 } from "../api/format";
-import { useStream } from "../api/stream";
+import { isTerminalCode, useStream } from "../api/stream";
 import { useApi } from "../app/context";
 import { showError } from "../app/errorStore";
+import { useStreamOutage } from "../app/hooks";
 import { useI18n, type MessageKey } from "../app/i18n";
 import { Icon } from "../components/Icon";
-import { StreamBanner } from "../components/StreamBanner";
+import { StreamErrorBanner } from "../components/StreamBanner";
 import { EmptyState, MenuItem, OthersMenu, SearchInput, Spinner, SubMenu } from "../components/ui";
 import { LogLevel, ServiceStatus_Type } from "../gen/daemon/started_service_pb";
 import { ansiColorCss, parseAnsi, parseCssColor, stripAnsi, type Rgb } from "../lib/ansi";
@@ -49,6 +50,9 @@ export function LogsView() {
   const api = useApi();
   const { t } = useI18n();
   const logs = useStream(api.logs);
+  // Stale entries stay up while the stream silently reconnects; the body
+  // yields to the banner only once the outage is latched.
+  const outage = useStreamOutage(logs, isTerminalCode(logs.errorCode));
   const serviceStatus = useStream(api.serviceStatus);
   const [level, setLevel] = useState<LogLevel | null>(null);
   const [paused, setPaused] = useState(false);
@@ -124,7 +128,7 @@ export function LogsView() {
   }, [visible, paused]);
 
   let body: ReactNode;
-  if (logs.data.entries.length > 0 && logs.phase !== "error") {
+  if (logs.data.entries.length > 0 && outage === null) {
     body = (
       <div className="log-view" ref={viewRef}>
         {visible.map((entry) => (
@@ -137,7 +141,7 @@ export function LogsView() {
         ))}
       </div>
     );
-  } else if (logs.phase === "error") {
+  } else if (outage !== null) {
     body = null;
   } else if (!started && serviceStatus.phase === "active") {
     body = <EmptyState icon="text_snippet">{t("Service not started")}</EmptyState>;
@@ -207,7 +211,7 @@ export function LogsView() {
       <div className="field">
         <SearchInput value={search} onChange={setSearch} />
       </div>
-      <StreamBanner snapshot={logs} subject="logs" />
+      <StreamErrorBanner error={outage} subject="logs" />
       {body}
     </div>
   );

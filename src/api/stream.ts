@@ -25,22 +25,16 @@ export function describeError(error: unknown): { message: string; code?: Code } 
   return { message: String(error) };
 }
 
-function sleep(durationMs: number, signal: AbortSignal): Promise<void> {
-  return new Promise((resolve) => {
-    if (signal.aborted) {
-      resolve();
-      return;
-    }
-    const timer = setTimeout(() => {
-      signal.removeEventListener("abort", onAbort);
-      resolve();
-    }, durationMs);
-    const onAbort = () => {
-      clearTimeout(timer);
-      resolve();
-    };
-    signal.addEventListener("abort", onAbort, { once: true });
-  });
+// Errors a retry cannot fix: the daemon does not support the call, or it
+// rejects the configured credentials. The reconnect loop stops on these,
+// and the UI takes over with the error screen immediately instead of
+// granting a reconnect grace period.
+export function isTerminalCode(code: Code | undefined): boolean {
+  return (
+    code === Code.Unimplemented ||
+    code === Code.Unauthenticated ||
+    code === Code.PermissionDenied
+  );
 }
 
 // A subscription stream shared by all components observing it: the stream is
@@ -50,6 +44,8 @@ export class StreamStore<T> {
   private listeners = new Set<() => void>();
   private snapshot: StreamSnapshot<T>;
   private controller: AbortController | null = null;
+  private skipBackoff = false;
+  private wakeBackoff: (() => void) | null = null;
 
   constructor(
     private createInitial: () => T,
@@ -74,6 +70,17 @@ export class StreamStore<T> {
 
   getSnapshot = (): StreamSnapshot<T> => this.snapshot;
 
+  // Cuts the current (or next) reconnect backoff short and restarts the
+  // attempt counter: called when the page returns to the foreground or the
+  // network comes back, where waiting out an accumulated backoff would keep
+  // stale data on screen. The flag (rather than waking alone) covers the
+  // resume race where the visibility event fires before the killed stream
+  // reports its error; a stale flag at most skips one 1 s backoff later.
+  retryNow = (): void => {
+    this.skipBackoff = true;
+    this.wakeBackoff?.();
+  };
+
   private setSnapshot(next: StreamSnapshot<T>) {
     this.snapshot = next;
     for (const listener of this.listeners) {
@@ -84,6 +91,7 @@ export class StreamStore<T> {
   private start() {
     const controller = new AbortController();
     this.controller = controller;
+    this.skipBackoff = false;
     void this.loop(controller.signal);
   }
 
@@ -116,17 +124,37 @@ export class StreamStore<T> {
           error: described.message,
           errorCode: described.code,
         });
-        if (
-          described.code === Code.Unimplemented ||
-          described.code === Code.Unauthenticated ||
-          described.code === Code.PermissionDenied
-        ) {
+        if (isTerminalCode(described.code)) {
           return;
         }
       }
       attempt += 1;
-      await sleep(Math.min(1000 * attempt, 5000), signal);
+      await this.backoff(Math.min(1000 * attempt, 5000), signal);
+      if (this.skipBackoff) {
+        // Woken by retryNow: the next failure backs off from scratch.
+        this.skipBackoff = false;
+        attempt = 0;
+      }
     }
+  }
+
+  // The sleep between reconnect attempts; retryNow() resolves it early.
+  private backoff(durationMs: number, signal: AbortSignal): Promise<void> {
+    return new Promise((resolve) => {
+      if (signal.aborted || this.skipBackoff) {
+        resolve();
+        return;
+      }
+      const finish = () => {
+        clearTimeout(timer);
+        signal.removeEventListener("abort", finish);
+        this.wakeBackoff = null;
+        resolve();
+      };
+      const timer = setTimeout(finish, durationMs);
+      signal.addEventListener("abort", finish, { once: true });
+      this.wakeBackoff = finish;
+    });
   }
 }
 

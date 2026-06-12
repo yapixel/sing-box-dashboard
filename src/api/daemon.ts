@@ -272,6 +272,21 @@ export class DaemonApi {
     );
   }
 
+  // Cuts every stream's reconnect backoff short — called when the page
+  // returns to the foreground or the network comes back, so streams the
+  // browser killed in the background recover immediately instead of
+  // waiting out their accumulated backoff.
+  retryNow(): void {
+    this.serviceStatus.retryNow();
+    this.status.retryNow();
+    this.groups.retryNow();
+    this.clashMode.retryNow();
+    this.logs.retryNow();
+    this.connections.retryNow();
+    this.outbounds.retryNow();
+    this.tailscale.retryNow();
+  }
+
   async urlTest(groupTag: string): Promise<void> {
     await this.client.uRLTest({ outboundTag: groupTag });
   }

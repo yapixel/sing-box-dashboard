@@ -44,11 +44,37 @@ export const TRANSLATIONS = {
   "Connecting...": { "zh-Hans": "连接中...", "zh-Hant": "連接中...", "fa": "در حال اتصال...", "ru": "Подключение..." },
   "Connection timed out after {seconds} seconds": { "zh-Hans": "连接超时（{seconds} 秒）", "zh-Hant": "連接超時（{seconds} 秒）", "fa": "اتصال پس از {seconds} ثانیه منقضی شد", "ru": "Время ожидания подключения истекло ({seconds} с)" },
   "Stream ended without a status message": { "zh-Hans": "流在未收到状态消息的情况下结束", "zh-Hant": "流在未收到狀態消息的情況下結束", "fa": "جریان بدون پیام وضعیت پایان یافت", "ru": "Поток завершился без сообщения о состоянии" },
-  "The server is unreachable, or the browser blocked the request (HTTPS page with an HTTP server, or access_control_allow_origin does not allow this origin); the exact reason is only shown in the browser console.": {
-    "zh-Hans": "服务器无法访问，或浏览器拦截了请求（HTTPS 页面访问 HTTP 服务器，或 access_control_allow_origin 不允许此来源）；具体原因仅显示在浏览器控制台中。",
-    "zh-Hant": "伺服器無法訪問，或瀏覽器攔截了請求（HTTPS 頁面訪問 HTTP 伺服器，或 access_control_allow_origin 不允許此來源）；具體原因僅顯示在瀏覽器控制台中。",
-    "fa": "سرور در دسترس نیست، یا مرورگر درخواست را مسدود کرده است (صفحه HTTPS با سرور HTTP، یا access_control_allow_origin این مبدأ را مجاز نمی‌داند)؛ دلیل دقیق فقط در کنسول مرورگر نمایش داده می‌شود.",
-    "ru": "Сервер недоступен, либо браузер заблокировал запрос (страница HTTPS с сервером HTTP, или access_control_allow_origin не разрешает этот источник); точная причина видна только в консоли браузера.",
+  // Conclusions of the connectivity probe (lib/connectivity.ts), appended
+  // to the browser's opaque network error.
+  "The browser is offline; check your network connection.": {
+    "zh-Hans": "浏览器处于离线状态；请检查网络连接。",
+    "zh-Hant": "瀏覽器處於離線狀態；請檢查網路連接。",
+    "fa": "مرورگر آفلاین است؛ اتصال شبکه را بررسی کنید.",
+    "ru": "Браузер не подключён к сети; проверьте сетевое подключение.",
+  },
+  "The server is reachable, but the browser blocked the request: the server does not allow this origin (CORS).": {
+    "zh-Hans": "服务器可以访问，但浏览器拦截了请求：服务器未允许此来源（CORS）。",
+    "zh-Hant": "伺服器可以訪問，但瀏覽器攔截了請求：伺服器未允許此來源（CORS）。",
+    "fa": "سرور در دسترس است، اما مرورگر درخواست را مسدود کرد: سرور این مبدأ را مجاز نمی‌داند (CORS).",
+    "ru": "Сервер доступен, но браузер заблокировал запрос: сервер не разрешает этот источник (CORS).",
+  },
+  "The browser blocked the request: an HTTPS page cannot access an HTTP server. Open the dashboard over HTTP, or serve the API over HTTPS.": {
+    "zh-Hans": "浏览器拦截了请求：HTTPS 页面无法访问 HTTP 服务器。请通过 HTTP 打开面板，或为 API 启用 HTTPS。",
+    "zh-Hant": "瀏覽器攔截了請求：HTTPS 頁面無法訪問 HTTP 伺服器。請通過 HTTP 打開面板，或為 API 啟用 HTTPS。",
+    "fa": "مرورگر درخواست را مسدود کرد: صفحه HTTPS نمی‌تواند به سرور HTTP دسترسی پیدا کند. داشبورد را از طریق HTTP باز کنید، یا API را با HTTPS ارائه دهید.",
+    "ru": "Браузер заблокировал запрос: страница HTTPS не может обращаться к серверу HTTP. Откройте панель по HTTP или настройте HTTPS для API.",
+  },
+  "The server is unreachable — or, if it is running, the browser blocked the HTTPS page from accessing the HTTP server; try opening the dashboard over HTTP.": {
+    "zh-Hans": "服务器无法访问——或者，如果它确实在运行，则是浏览器拦截了 HTTPS 页面对 HTTP 服务器的访问；请尝试通过 HTTP 打开面板。",
+    "zh-Hant": "伺服器無法訪問——或者，如果它確實在運行，則是瀏覽器攔截了 HTTPS 頁面對 HTTP 伺服器的訪問；請嘗試通過 HTTP 打開面板。",
+    "fa": "سرور در دسترس نیست — یا اگر در حال اجرا است، مرورگر دسترسی صفحه HTTPS به سرور HTTP را مسدود کرده است؛ داشبورد را از طریق HTTP باز کنید.",
+    "ru": "Сервер недоступен — либо, если он запущен, браузер заблокировал доступ страницы HTTPS к серверу HTTP; попробуйте открыть панель по HTTP.",
+  },
+  "The server is unreachable; check that the address is correct and the service is running.": {
+    "zh-Hans": "服务器无法访问；请检查地址是否正确、服务是否在运行。",
+    "zh-Hant": "伺服器無法訪問；請檢查地址是否正確、服務是否在運行。",
+    "fa": "سرور در دسترس نیست؛ بررسی کنید که نشانی درست و سرویس در حال اجرا باشد.",
+    "ru": "Сервер недоступен; проверьте, что адрес верен и служба запущена.",
   },
 
   // settings

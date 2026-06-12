@@ -258,6 +258,21 @@ body,
   height: 100%;
 }
 
+/* The document never scrolls (the app scrolls in inner containers), so any
+   document overscroll only manifests as pull-to-refresh / rubber-banding /
+   swipe navigation. The inner scrollers carry overscroll-behavior too,
+   because iOS Safari applies it unreliably on the root scroller — blocking
+   the chain at the inner scroller is what actually stops the bounce there. */
+html,
+body {
+  overscroll-behavior: none;
+  /* Disables double-tap zoom only. Deliberately not the stricter pan-x
+     pan-y, which can break text-field touch interactions (tap-to-focus,
+     IME) on some engines. Pinch-zoom is covered elsewhere: viewport meta
+     (Android) and the gesture-event hack in main.tsx (iOS). */
+  touch-action: manipulation;
+}
+
 /* iOS Safari fills the status bar area with the canvas (html) background;
    use the topbar surface so both bars read as one piece of chrome. */
 html {
@@ -639,6 +654,7 @@ a:hover {
   flex: 1;
   min-width: 0;
   overflow-y: auto;
+  overscroll-behavior: none;
 }
 
 .page {
@@ -1662,6 +1678,64 @@ a:hover {
   white-space: nowrap;
 }
 
+/* ---------- connecting / reconnecting ---------- */
+
+/* Shared with the mobile sidebar scrim. */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* First connect to a server, before anything has arrived: just the brand
+   and a centered spinner. The delayed fade-in keeps a fast connect from
+   flashing it. */
+.connecting-view {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  background: var(--bg);
+}
+
+.connecting-view > * {
+  animation: fade-in var(--transition-medium) both;
+  animation-delay: 0.2s;
+}
+
+.connecting-view .setup-brand {
+  margin-bottom: 0;
+}
+
+.connecting-view .spinner {
+  width: 21px;
+  height: 21px;
+}
+
+/* Floating hint while the reconnect grace period runs (App.tsx); the long
+   fade-in delay keeps it invisible when the outage is over in under a
+   second, e.g. an instant reconnect after returning from the background. */
+.reconnect-pill {
+  position: fixed;
+  bottom: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--card);
+  box-shadow: var(--shadow-card);
+  font-size: 12.5px;
+  animation: fade-in var(--transition-medium) both;
+  animation-delay: 0.9s;
+}
+
 /* ---------- groups ---------- */
 
 .group-card {
@@ -1839,6 +1913,7 @@ a:hover {
   line-height: 1.65;
   padding: 12px 14px;
   overflow-y: auto;
+  overscroll-behavior: none;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
@@ -1879,6 +1954,7 @@ a:hover {
   box-shadow: var(--shadow-overlay);
   padding: 22px 24px;
   overflow-y: auto;
+  overscroll-behavior: none;
   animation: slide-in 0.18s ease;
 }
 
@@ -1936,6 +2012,7 @@ a:hover {
   max-width: calc(100% - 48px);
   max-height: 90vh;
   overflow-y: auto;
+  overscroll-behavior: none;
   animation: dialog-in 0.18s ease-out;
 }
 
@@ -2438,12 +2515,6 @@ a.nav-line {
     position: absolute;
     inset: 0;
     background: rgba(0, 0, 0, 0.32);
-  }
-
-  @keyframes fade-in {
-    from {
-      opacity: 0;
-    }
   }
 
   /* Larger touch targets for the in-drawer navigation. */
