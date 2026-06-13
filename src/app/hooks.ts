@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type RefObject } from "react";
 
 import type { StreamSnapshot } from "../api/stream";
+import { loadTerminalConfig, TERMINAL_CONFIG_EVENT, type TerminalConfig } from "../lib/tailscaleSSH";
 
 export const RECONNECT_GRACE_MS = 6500;
 
@@ -44,6 +45,51 @@ export function useStreamOutage(
     };
   }, []);
   return outage;
+}
+
+// Tracks the on-screen keyboard height via the visual viewport so the terminal
+// symbol bar can sit just above the soft keyboard. Returns 0 when no keyboard
+// is shown, or on platforms without a visualViewport (desktop/old browsers).
+//
+// Height is layout viewport - visual viewport, deliberately WITHOUT offsetTop,
+// and recomputed only on `resize` (keyboard show/hide) — never on `scroll`.
+// The keyboard is anchored to the bottom of the layout viewport, so its height
+// is constant while the page rubber-band scrolls; folding in offsetTop or
+// reacting to scroll would make a `position: fixed` bar drift away from the
+// keyboard and flicker out on scroll-up.
+export function useKeyboardInset(): number {
+  const [inset, setInset] = useState(0);
+  useEffect(() => {
+    const viewport = window.visualViewport;
+    if (!viewport) {
+      return;
+    }
+    const update = () => {
+      const height = window.innerHeight - viewport.height;
+      setInset(height > 1 ? Math.round(height) : 0);
+    };
+    update();
+    viewport.addEventListener("resize", update);
+    return () => viewport.removeEventListener("resize", update);
+  }, []);
+  return inset;
+}
+
+// Reads the terminal config from storage and re-renders when it changes, both
+// within this window (custom event) and in the desktop terminal popup (the
+// native cross-window `storage` event).
+export function useTerminalConfig(): TerminalConfig {
+  const [config, setConfig] = useState<TerminalConfig>(loadTerminalConfig);
+  useEffect(() => {
+    const update = () => setConfig(loadTerminalConfig());
+    window.addEventListener("storage", update);
+    window.addEventListener(TERMINAL_CONFIG_EVENT, update);
+    return () => {
+      window.removeEventListener("storage", update);
+      window.removeEventListener(TERMINAL_CONFIG_EVENT, update);
+    };
+  }, []);
+  return config;
 }
 
 const escapeStack: (() => void)[] = [];

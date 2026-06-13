@@ -5,7 +5,7 @@ import { isTerminalCode, useStream } from "../api/stream";
 import { useApi } from "../app/context";
 import { showError } from "../app/errorStore";
 import { useStreamOutage } from "../app/hooks";
-import { useI18n, type MessageKey } from "../app/i18n";
+import { useI18n } from "../app/i18n";
 import { Icon } from "../components/Icon";
 import { StreamErrorBanner } from "../components/StreamBanner";
 import { EmptyState, MenuItem, OthersMenu, SearchInput, Spinner, SubMenu } from "../components/ui";
@@ -14,7 +14,7 @@ import { ansiColorCss, parseAnsi, parseCssColor, stripAnsi, type Rgb } from "../
 
 const MAX_VISIBLE_LOGS = 1000;
 
-const LEVEL_OPTIONS: { value: LogLevel; label: MessageKey }[] = [
+const LEVEL_OPTIONS: { value: LogLevel; label: string }[] = [
   { value: LogLevel.ERROR, label: "Error" },
   { value: LogLevel.WARN, label: "Warn" },
   { value: LogLevel.INFO, label: "Info" },
@@ -169,7 +169,7 @@ export function LogsView() {
                   checked={level === option.value}
                   onSelect={() => setLevel(option.value)}
                 >
-                  {t(option.label)}
+                  {option.label}
                 </MenuItem>
               ))}
             </SubMenu>

@@ -1,8 +1,8 @@
 version: v2
 inputs:
-  - directory: sing-box
+  - directory: vendor/sing-box
     paths:
-      - sing-box/daemon/started_service.proto
+      - vendor/sing-box/daemon/started_service.proto
 plugins:
   - local: protoc-gen-es
     out: src/gen

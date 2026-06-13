@@ -40,6 +40,23 @@ export function DataLine(props: { label: ReactNode; value: ReactNode; mono?: boo
   );
 }
 
+export function DetailSection(props: { title?: ReactNode; accessory?: ReactNode; children: ReactNode }) {
+  return (
+    <>
+      {(props.title || props.accessory) && (
+        <div
+          className="drawer-section"
+          style={props.accessory ? { display: "flex", alignItems: "center", gap: 8 } : undefined}
+        >
+          {props.title}
+          {props.accessory && <span style={{ marginInlineStart: "auto" }}>{props.accessory}</span>}
+        </div>
+      )}
+      <div className="detail-card">{props.children}</div>
+    </>
+  );
+}
+
 export type BadgeTone = DelayTone | "danger" | "info" | "accent";
 
 export function Badge(props: { tone?: BadgeTone; children: ReactNode }) {
@@ -515,20 +532,22 @@ export function QRCode(props: { value: string }) {
   );
 }
 
-function useShowModal() {
+function useShowModal(focusSelf = false) {
   const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => {
     const dialog = ref.current;
     if (!dialog) {
       return;
     }
-    const focused = document.activeElement;
     dialog.showModal();
-    if (focused instanceof HTMLElement && dialog.contains(focused)) {
-      focused.focus();
+    if (focusSelf) {
+      // showModal() moves focus to the first focusable control, leaving it
+      // visibly highlighted. Focus the dialog itself instead so nothing starts
+      // out selected. (Dialogs that want an initial focus use autoFocus.)
+      dialog.focus();
     }
     return () => dialog.close();
-  }, []);
+  }, [focusSelf]);
   return ref;
 }
 
@@ -550,11 +569,12 @@ function closeOnBackdropClick(event: React.MouseEvent<HTMLDialogElement>, onClos
 }
 
 export function Drawer(props: { onClose: () => void; children: ReactNode }) {
-  const ref = useShowModal();
+  const ref = useShowModal(true);
   return (
     <dialog
       ref={ref}
       className="drawer"
+      tabIndex={-1}
       onCancel={(event) => {
         event.preventDefault();
         props.onClose();

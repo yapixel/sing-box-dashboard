@@ -37,7 +37,14 @@ import { ConnectionsView } from "./views/ConnectionsView";
 import { GroupsView } from "./views/GroupsView";
 import { LogsView } from "./views/LogsView";
 import { OverviewView } from "./views/OverviewView";
-import { PreferencesView, ServersView, SettingsView } from "./views/SettingsView";
+import {
+  PreferencesView,
+  ServersView,
+  SettingsView,
+  TerminalConfigurationView,
+  TerminalThemeEditorView,
+  TerminalThemePickerView,
+} from "./views/SettingsView";
 import { SetupView } from "./views/SetupView";
 import { NetworkQualityView, STUNTestView, ToolsView } from "./views/ToolsView";
 import { TailscaleEndpointView } from "./views/TailscaleView";
@@ -55,6 +62,9 @@ export type Route =
   | { page: "tools/tailscale/ssh"; tag: string; peerID: string; username: string; terminalType: string }
   | { page: "settings" }
   | { page: "settings/preferences" }
+  | { page: "settings/preferences/terminal" }
+  | { page: "settings/preferences/terminal/theme"; scheme: "light" | "dark" }
+  | { page: "settings/preferences/terminal/custom"; scheme: "light" | "dark" }
   | { page: "settings/servers" };
 
 function decodeSegment(segment: string): string {
@@ -102,6 +112,15 @@ function routeFromHash(): Route {
     case "settings":
       switch (segments[1]) {
         case "preferences":
+          if (segments[2] === "terminal") {
+            if (segments[3] === "theme" && (segments[4] === "light" || segments[4] === "dark")) {
+              return { page: "settings/preferences/terminal/theme", scheme: segments[4] };
+            }
+            if (segments[3] === "custom" && (segments[4] === "light" || segments[4] === "dark")) {
+              return { page: "settings/preferences/terminal/custom", scheme: segments[4] };
+            }
+            return { page: "settings/preferences/terminal" };
+          }
           return { page: "settings/preferences" };
         case "servers":
           return { page: "settings/servers" };
@@ -387,7 +406,7 @@ function ShellContent(props: {
         {route.page === "tools/network-quality" && <NetworkQualityView />}
         {route.page === "tools/stun" && <STUNTestView />}
         {route.page === "tools/tailscale" && <TailscaleEndpointView tag={route.tag} />}
-        {route.page === "settings" && <SettingsView serversState={props.serversState} />}
+        {route.page === "settings" && <SettingsView />}
         {route.page === "settings/preferences" && (
           <PreferencesView
             theme={props.theme}
@@ -395,6 +414,13 @@ function ShellContent(props: {
             accent={props.accent}
             onAccentChange={props.onAccentChange}
           />
+        )}
+        {route.page === "settings/preferences/terminal" && <TerminalConfigurationView />}
+        {route.page === "settings/preferences/terminal/theme" && (
+          <TerminalThemePickerView scheme={route.scheme} />
+        )}
+        {route.page === "settings/preferences/terminal/custom" && (
+          <TerminalThemeEditorView scheme={route.scheme} />
         )}
         {route.page === "settings/servers" && (
           <ServersView serversState={props.serversState} onServersChange={props.onServersChange} />

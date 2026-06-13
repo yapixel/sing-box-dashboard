@@ -67,7 +67,7 @@ export const TRANSLATIONS = {
 
   "Servers": { "zh-Hans": "服务器", "zh-Hant": "伺服器", "fa": "سرورها", "ru": "Серверы" },
   "Add server": { "zh-Hans": "添加服务器", "zh-Hant": "添加伺服器", "fa": "افزودن سرور", "ru": "Добавить сервер" },
-  "Preferences": { "zh-Hans": "偏好设置", "zh-Hant": "偏好設置", "fa": "ترجیحات", "ru": "Параметры" },
+  "Preferences": { "zh-Hans": "偏好", "zh-Hant": "偏好", "fa": "ترجیحات", "ru": "Параметры" },
   "About": { "zh-Hans": "关于", "zh-Hant": "關於", "fa": "درباره", "ru": "О программе" },
   "Source Code": { "zh-Hans": "源代码", "zh-Hant": "原始碼", "fa": "کد منبع", "ru": "Исходный код" },
   "Appearance": { "zh-Hans": "外观", "zh-Hant": "外觀", "fa": "ظاهر", "ru": "Оформление" },
@@ -169,10 +169,6 @@ export const TRANSLATIONS = {
   "Close connection": { "zh-Hans": "关闭连接", "zh-Hant": "關閉連接", "fa": "بستن اتصال", "ru": "Закрыть подключение" },
 
   "Error": { "zh-Hans": "错误", "zh-Hant": "錯誤", "fa": "خطا", "ru": "Ошибка" },
-  "Warn": { "zh-Hans": "警告", "zh-Hant": "警告", "fa": "هشدار", "ru": "Предупреждение" },
-  "Info": { "zh-Hans": "信息", "zh-Hant": "信息", "fa": "اطلاعات", "ru": "Информация" },
-  "Debug": { "zh-Hans": "调试", "zh-Hant": "調試", "fa": "اشکال‌زدایی", "ru": "Отладка" },
-  "Trace": { "zh-Hans": "跟踪", "zh-Hant": "跟蹤", "fa": "ردیابی", "ru": "Трассировка" },
   "Default": { "zh-Hans": "默认", "zh-Hant": "默認", "fa": "پیش‌فرض", "ru": "По умолчанию" },
   "Pause scrolling": { "zh-Hans": "暂停滚动", "zh-Hant": "暫停滾動", "fa": "مکث پیمایش", "ru": "Приостановить прокрутку" },
   "Resume scrolling": { "zh-Hans": "恢复滚动", "zh-Hant": "恢復滾動", "fa": "ادامه پیمایش", "ru": "Возобновить прокрутку" },
@@ -250,6 +246,8 @@ export const TRANSLATIONS = {
   "If enabled, Connect will open the session directly without asking again. This also applies to the shortcut menu on this peer's entry in the peer list.": { "zh-Hans": "启用后，连接将直接打开会话，不再询问。通过设备列表条目上的快捷菜单连接时也是如此。", "zh-Hant": "啟用後，連接將直接打開會話，不再詢問。透過裝置列表條目上的快捷選單連接時也是如此。", "fa": "در صورت فعال بودن، «اتصال» نشست را مستقیماً و بدون پرسش باز می‌کند. این مورد برای منوی میان‌بر روی این همتا در فهرست همتایان نیز صدق می‌کند.", "ru": "Если включено, подключение будет открывать сессию сразу, без повторного запроса. Это касается и меню быстрого доступа на записи этого узла в списке." },
   "This peer will also appear in the New Session menu when connected to other peers via SSH.": { "zh-Hans": "通过 SSH 连接到其他设备时，此设备还会出现在“新建会话”菜单中。", "zh-Hant": "透過 SSH 連接到其他裝置時，此裝置還會出現在「新建工作階段」選單中。", "fa": "این همتا هنگام اتصال به همتاهای دیگر از طریق SSH در منوی «جلسه جدید» نیز نمایش داده می‌شود.", "ru": "Этот узел также появится в меню «Новая сессия» при подключении к другим узлам по SSH." },
   "Edit": { "zh-Hans": "编辑", "zh-Hant": "編輯", "fa": "ویرایش", "ru": "Изменить" },
+  "SSH Configuration": { "zh-Hans": "SSH 配置", "zh-Hant": "SSH 配置", "fa": "پیکربندی SSH", "ru": "Конфигурация SSH" },
+  "Edit SSH Configuration": { "zh-Hans": "编辑 SSH 配置", "zh-Hant": "編輯 SSH 配置", "fa": "ویرایش پیکربندی SSH", "ru": "Изменить конфигурацию SSH" },
   "Peer not found": { "zh-Hans": "未找到设备", "zh-Hant": "未找到裝置", "fa": "همتا یافت نشد", "ru": "Узел не найден" },
 
   "New Session": { "zh-Hans": "新建会话", "zh-Hant": "新建工作階段", "fa": "جلسه جدید", "ru": "Новая сессия" },
@@ -261,6 +259,30 @@ export const TRANSLATIONS = {
 
   "Others": { "zh-Hans": "其他", "zh-Hant": "其他", "fa": "سایر", "ru": "Другое" },
   "Copy": { "zh-Hans": "复制", "zh-Hant": "複製", "fa": "کپی", "ru": "Копировать" },
+
+  "Terminal keys": { "zh-Hans": "终端按键", "zh-Hant": "終端按鍵", "fa": "کلیدهای ترمینال", "ru": "Клавиши терминала" },
+  "Escape": { "zh-Hans": "Esc 键", "zh-Hant": "Esc 鍵", "fa": "کلید Esc", "ru": "Escape" },
+  "Tab": { "zh-Hans": "Tab 键", "zh-Hant": "Tab 鍵", "fa": "کلید Tab", "ru": "Tab" },
+  "Control": { "zh-Hans": "Control 键", "zh-Hant": "Control 鍵", "fa": "کلید Control", "ru": "Control" },
+  "Option": { "zh-Hans": "Option 键", "zh-Hant": "Option 鍵", "fa": "کلید Option", "ru": "Option" },
+  "Paste": { "zh-Hans": "粘贴", "zh-Hant": "貼上", "fa": "چسباندن", "ru": "Вставить" },
+  "Arrow up": { "zh-Hans": "上箭头", "zh-Hant": "上箭頭", "fa": "پیکان بالا", "ru": "Стрелка вверх" },
+  "Arrow down": { "zh-Hans": "下箭头", "zh-Hant": "下箭頭", "fa": "پیکان پایین", "ru": "Стрелка вниз" },
+  "Arrow left": { "zh-Hans": "左箭头", "zh-Hant": "左箭頭", "fa": "پیکان چپ", "ru": "Стрелка влево" },
+  "Arrow right": { "zh-Hans": "右箭头", "zh-Hant": "右箭頭", "fa": "پیکان راست", "ru": "Стрелка вправо" },
+
+  "Terminal Configuration": { "zh-Hans": "终端配置", "zh-Hant": "終端配置", "fa": "پیکربندی ترمینال", "ru": "Настройки терминала" },
+  "Symbol Bar": { "zh-Hans": "辅助符号栏", "zh-Hant": "輔助符號欄", "fa": "نوار نمادها", "ru": "Панель символов" },
+  "Always show": { "zh-Hans": "始终显示", "zh-Hant": "始終顯示", "fa": "همیشه نمایش بده", "ru": "Всегда показывать" },
+  "Font": { "zh-Hans": "字体", "zh-Hant": "字型", "fa": "فونت", "ru": "Шрифт" },
+  "Font family": { "zh-Hans": "字体", "zh-Hant": "字型", "fa": "خانواده فونت", "ru": "Семейство шрифтов" },
+  "Font size": { "zh-Hans": "字号", "zh-Hant": "字號", "fa": "اندازه فونت", "ru": "Размер шрифта" },
+  "Custom theme": { "zh-Hans": "自定义主题", "zh-Hant": "自訂主題", "fa": "تم سفارشی", "ru": "Своя тема" },
+  "Edit custom theme": { "zh-Hans": "编辑自定义主题", "zh-Hant": "編輯自訂主題", "fa": "ویرایش تم سفارشی", "ru": "Изменить свою тему" },
+  "Invalid theme JSON": { "zh-Hans": "无效的主题 JSON", "zh-Hant": "無效的主題 JSON", "fa": "JSON تم نامعتبر است", "ru": "Недопустимый JSON темы" },
+  "Colors use the xterm.js theme format.": { "zh-Hans": "颜色采用 xterm.js 主题格式。", "zh-Hant": "顏色採用 xterm.js 主題格式。", "fa": "رنگ‌ها از قالب تم xterm.js استفاده می‌کنند.", "ru": "Цвета используют формат темы xterm.js." },
+  "Learn more": { "zh-Hans": "了解更多", "zh-Hant": "瞭解更多", "fa": "بیشتر بدانید", "ru": "Подробнее" },
+  "Search themes": { "zh-Hans": "搜索主题", "zh-Hant": "搜尋主題", "fa": "جستجوی تم‌ها", "ru": "Поиск тем" },
 } as const satisfies Record<string, Record<TranslatedLanguage, string | PluralForms>>;
 
 export type MessageKey = keyof typeof TRANSLATIONS;

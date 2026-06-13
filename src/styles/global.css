@@ -1213,6 +1213,10 @@ a:hover {
   flex: 1;
 }
 
+.settings-row > .icon:first-child {
+  color: var(--text-faint);
+}
+
 .settings-row .icon-segmented,
 .settings-row .menu-anchor > .button,
 .settings-row .select.inline {
@@ -1249,6 +1253,92 @@ a:hover {
   margin-inline-start: auto;
   display: inline-flex;
   color: var(--text-faint);
+}
+
+/* A settings-row rendered as a <button> needs the same reset as .nav-row,
+   otherwise it keeps the native button background, auto width and overflows. */
+button.settings-row {
+  width: 100%;
+  appearance: none;
+  -webkit-appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  text-align: start;
+  cursor: pointer;
+}
+
+button.settings-row:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+/* Clicking a row to navigate leaves it focused; the default ring sits outside
+   the card's rounded corners and reads as a stray box. Drop it for pointer
+   focus, keep an inset ring for keyboard users. */
+button.settings-row:focus {
+  outline: none;
+}
+
+button.settings-row:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.theme-editor {
+  height: auto;
+  min-height: 260px;
+  padding: 12px;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  line-height: 1.6;
+  resize: vertical;
+}
+
+.theme-editor-note {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+}
+
+.field-error {
+  color: var(--danger);
+  font-size: 12px;
+}
+
+.theme-picker-loading {
+  display: flex;
+  justify-content: center;
+  padding: 24px 0;
+}
+
+.theme-picker-row {
+  text-align: start;
+}
+
+/* A miniature terminal so the row shows the theme's real background, foreground
+   and a spread of ANSI colors instead of an abstract swatch. */
+.theme-preview {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  width: 176px;
+  height: 44px;
+  padding: 6px 9px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  line-height: 1.4;
+  overflow: hidden;
+}
+
+.theme-preview-line {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .server-list {
@@ -1806,6 +1896,7 @@ a:hover {
   padding: 22px 24px;
   overflow-y: auto;
   overscroll-behavior: none;
+  outline: none;
   animation: slide-in 0.18s ease;
 }
 
@@ -1848,6 +1939,22 @@ a:hover {
   text-transform: uppercase;
   color: var(--text-faint);
   margin: 18px 0 6px;
+}
+
+.detail-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: 2px 14px;
+}
+
+.detail-card .data-line {
+  padding: 9px 0;
+}
+
+.detail-card .data-line + .data-line {
+  border-top: 1px solid var(--border);
 }
 
 .dialog {
@@ -1966,28 +2073,121 @@ body:has(> #root > .page.terminal-page) {
   padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
 }
 
+/* xterm v6 scrolls via a VS Code-style overlay scrollbar (styled below) and no
+   longer uses the element's native viewport scrollbar, so hide that one to
+   avoid a stray default-width scrollbar. */
+.terminal-page .xterm-viewport {
+  scrollbar-width: none;
+}
+
 .terminal-page .xterm-viewport::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+/* Slim the v6 overlay scrollbar (.xterm-scrollable-element > .scrollbar >
+   .slider) down to match the old thin look. The inline width/height and the
+   theme-driven background xterm sets need !important to override. */
+.terminal-page .xterm-scrollable-element > .scrollbar.vertical,
+.terminal-page .xterm-scrollable-element > .scrollbar.vertical > .slider {
+  width: 7px !important;
+}
+
+.terminal-page .xterm-scrollable-element > .scrollbar.horizontal,
+.terminal-page .xterm-scrollable-element > .scrollbar.horizontal > .slider {
+  height: 7px !important;
+}
+
+.terminal-page .xterm-scrollable-element > .scrollbar > .slider {
+  background: rgba(255, 255, 255, 0.22) !important;
+  border-radius: 4px;
+}
+
+.terminal-page .xterm-scrollable-element > .scrollbar > .slider:hover {
+  background: rgba(255, 255, 255, 0.38) !important;
+}
+
+/* Auxiliary symbol bar floating above the on-screen keyboard. Height (44px of
+   content + 1px border ≈ SYMBOL_BAR_HEIGHT 46) must stay in sync with the
+   SYMBOL_BAR_HEIGHT constant in TerminalSymbolBar.tsx. */
+.terminal-symbol-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 71;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-sizing: border-box;
+  padding: 5px 10px;
+  padding-left: max(10px, env(safe-area-inset-left, 0px));
+  padding-right: max(10px, env(safe-area-inset-right, 0px));
+  /* Lift content above the home indicator when the bar rests at the bottom
+     (always-show, keyboard hidden). With the keyboard up the inset is 0. */
+  padding-bottom: max(5px, env(safe-area-inset-bottom, 0px));
+  overflow-x: auto;
+  overflow-y: hidden;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.terminal-symbol-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.terminal-symbol-bar button {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 34px;
+  height: 34px;
+  padding: 0 9px;
+  border: none;
+  border-radius: var(--radius-control);
+  background: var(--hover);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: background var(--transition-fast);
+}
+
+.terminal-symbol-bar button.symbol {
+  font-family: var(--font-mono);
+  font-size: 15px;
+}
+
+.terminal-symbol-bar button:active {
+  background: var(--accent-soft);
+}
+
+.terminal-symbol-bar button.armed {
+  background: var(--accent-soft);
+  box-shadow: inset 0 0 0 1.5px var(--accent);
+}
+
+.terminal-symbol-bar button.locked {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.terminal-symbol-bar .symbol-divider {
+  flex: 0 0 auto;
   width: 5px;
-}
-
-.terminal-page .xterm-viewport::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.terminal-page .xterm-viewport::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.22);
-  border-radius: 0;
-}
-
-.terminal-page .xterm-viewport::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.38);
-}
-
-@supports not selector(::-webkit-scrollbar) {
-  .terminal-page .xterm-viewport {
-    scrollbar-width: thin;
-    scrollbar-color: rgba(255, 255, 255, 0.22) transparent;
-  }
+  height: 5px;
+  margin: 0 2px;
+  border-radius: 50%;
+  background: var(--text-faint);
+  opacity: 0.5;
 }
 
 .empty-state {
@@ -2133,6 +2333,10 @@ body:has(> #root > .page.terminal-page) {
   gap: 5px;
 }
 
+.nav-lines {
+  margin: -18px;
+}
+
 .nav-line {
   display: flex;
   align-items: center;
@@ -2142,8 +2346,7 @@ body:has(> #root > .page.terminal-page) {
   background: transparent;
   border: 0;
   border-bottom: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 10px 4px;
+  padding: 12px 18px;
   font-size: 13px;
   color: inherit;
   cursor: pointer;
@@ -2157,8 +2360,17 @@ a.nav-line {
   cursor: default;
 }
 
+.nav-line:first-child {
+  border-radius: calc(var(--radius-card) - 1px) calc(var(--radius-card) - 1px) 0 0;
+}
+
 .nav-line:last-child {
   border-bottom: 0;
+  border-radius: 0 0 calc(var(--radius-card) - 1px) calc(var(--radius-card) - 1px);
+}
+
+.nav-line:only-child {
+  border-radius: calc(var(--radius-card) - 1px);
 }
 
 .nav-line:hover:not(.static) {

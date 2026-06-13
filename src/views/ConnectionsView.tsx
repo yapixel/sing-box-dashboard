@@ -9,7 +9,7 @@ import { showError } from "../app/errorStore";
 import { useI18n, type MessageKey } from "../app/i18n";
 import { Icon } from "../components/Icon";
 import { StreamStates } from "../components/StreamBanner";
-import { Badge, DataLine, DetailShell, MenuItem, MenuLabel, OthersMenu, SearchInput } from "../components/ui";
+import { Badge, DataLine, DetailSection, DetailShell, MenuItem, MenuLabel, OthersMenu, SearchInput } from "../components/ui";
 
 type StateFilter = "all" | "active" | "closed";
 type SortMode = "date" | "traffic" | "trafficTotal";
@@ -294,37 +294,38 @@ function ConnectionDetailBody(props: { row: ConnectionRow; onClose: () => void }
       <div className="hint" style={{ fontFamily: "var(--font-mono)" }}>
         {connection.id}
       </div>
-      <div className="drawer-section">{t("Traffic")}</div>
-      <Line label={t("Created at")} value={formatDateTime(Number(connection.createdAt), language)} />
-      {row.closedAt !== null && (
-        <Line label={t("Closed at")} value={formatDateTime(row.closedAt, language)} />
-      )}
-      <Line label={t("Uplink")} value={formatBytes(row.uplinkTotal)} />
-      <Line label={t("Downlink")} value={formatBytes(row.downlinkTotal)} />
-      <div className="drawer-section">{t("Metadata")}</div>
-      <Line label={t("Inbound")} value={connection.inbound} />
-      <Line label={t("Inbound type")} value={connection.inboundType} />
-      <Line label={t("IP version")} value={connection.ipVersion > 0 ? `IPv${connection.ipVersion}` : ""} />
-      <Line label={t("Network")} value={connection.network.toUpperCase()} />
-      <Line label={t("Source")} value={connection.source} />
-      <Line label={t("Destination")} value={connection.destination} />
-      <Line label={t("Domain")} value={connection.domain} />
-      <Line label={t("Protocol")} value={connection.protocol} />
-      <Line label={t("User")} value={connection.user} />
-      <Line label={t("From outbound")} value={connection.fromOutbound} />
-      <Line label={t("Match rule")} value={connection.rule} />
-      <Line label={t("Outbound")} value={connection.outbound} />
-      <Line label={t("Outbound type")} value={connection.outboundType} />
-      {chain.length > 1 && <Line label={t("Chain")} value={chain.join(" / ")} />}
+      <DetailSection title={t("Traffic")}>
+        <Line label={t("Created at")} value={formatDateTime(Number(connection.createdAt), language)} />
+        {row.closedAt !== null && (
+          <Line label={t("Closed at")} value={formatDateTime(row.closedAt, language)} />
+        )}
+        <Line label={t("Uplink")} value={formatBytes(row.uplinkTotal)} />
+        <Line label={t("Downlink")} value={formatBytes(row.downlinkTotal)} />
+      </DetailSection>
+      <DetailSection title={t("Metadata")}>
+        <Line label={t("Inbound")} value={connection.inbound} />
+        <Line label={t("Inbound type")} value={connection.inboundType} />
+        <Line label={t("IP version")} value={connection.ipVersion > 0 ? `IPv${connection.ipVersion}` : ""} />
+        <Line label={t("Network")} value={connection.network.toUpperCase()} />
+        <Line label={t("Source")} value={connection.source} />
+        <Line label={t("Destination")} value={connection.destination} />
+        <Line label={t("Domain")} value={connection.domain} />
+        <Line label={t("Protocol")} value={connection.protocol} />
+        <Line label={t("User")} value={connection.user} />
+        <Line label={t("From outbound")} value={connection.fromOutbound} />
+        <Line label={t("Match rule")} value={connection.rule} />
+        <Line label={t("Outbound")} value={connection.outbound} />
+        <Line label={t("Outbound type")} value={connection.outboundType} />
+        {chain.length > 1 && <Line label={t("Chain")} value={chain.join(" / ")} />}
+      </DetailSection>
       {connection.processInfo && (
-        <>
-          <div className="drawer-section">{t("Process")}</div>
+        <DetailSection title={t("Process")}>
           <Line
             label={t("Process")}
             value={`${connection.processInfo.processPath} (${connection.processInfo.processId})`}
           />
           <Line label={t("User")} value={connection.processInfo.userName} />
-        </>
+        </DetailSection>
       )}
       {active && (
         <>

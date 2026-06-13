@@ -13,14 +13,13 @@ import {
   Card,
   CopyValue,
   DataLine,
+  DetailSection,
   DetailShell,
   Dialog,
-  EmptyState,
   Field,
   MenuItem,
   OthersMenu,
   QRCode,
-  SearchInput,
   Sparkline,
   Toggle,
 } from "../components/ui";
@@ -52,7 +51,6 @@ export function TailscaleEndpointView(props: { tag: string }) {
   const [mobileSSH, setMobileSSH] = useState<SSHSessionOptions | null>(null);
   const [exitPickerOpen, setExitPickerOpen] = useState(false);
   const [authQROpen, setAuthQROpen] = useState(false);
-  const [search, setSearch] = useState("");
 
   const endpoint = tailscale.data.endpoints.find((entry) => entry.endpointTag === props.tag);
   const peers = allPeers(endpoint);
@@ -129,11 +127,10 @@ export function TailscaleEndpointView(props: { tag: string }) {
     <DetailShell
       backLabel="Tailscale"
       title={peerDisplayName(detailPeer)}
-      subtitle={
-        <div className="hint" style={{ display: "flex", alignItems: "center", gap: 7 }}>
-          <span className={`state-dot ${detailPeer.online ? "good" : ""}`} />
+      accessory={
+        <Badge tone={detailPeer.online ? "good" : "neutral"}>
           {detailPeer.online ? t("Connected") : t("Not connected")}
-        </div>
+        </Badge>
       }
       onClose={() => setPeerDetail(null)}
     >
@@ -180,15 +177,11 @@ export function TailscaleEndpointView(props: { tag: string }) {
             onOpenAuthQR={() => setAuthQROpen(true)}
           />
           {running && allPeers.length > 0 && (
-            <>
-              <SearchInput value={search} onChange={setSearch} />
-              <PeerSections
-                endpoint={endpoint}
-                search={search}
-                onShowPeer={setPeerDetail}
-                onConnectSSH={connectSSH}
-              />
-            </>
+            <PeerSections
+              endpoint={endpoint}
+              onShowPeer={setPeerDetail}
+              onConnectSSH={connectSSH}
+            />
           )}
         </div>
       )}
@@ -224,48 +217,51 @@ function StatusCard(props: {
   const running = endpoint.backendState === "Running";
 
   return (
-    <Card title={t("Status")}>
-      <div className="nav-lines">
-        <div className="nav-line static">
-          <Icon name="power_settings_new" size={15} />
-          <span className="nav-line-label">{t("State")}</span>
-          <span className="nav-line-value">
-            <span className={`state-dot ${backendStateTone(endpoint.backendState)}`} />
-            {endpoint.backendState || t("Unknown")}
-          </span>
+    <div>
+      <div className="list-section-title">{t("Status")}</div>
+      <Card>
+        <div className="nav-lines">
+          <div className="nav-line static">
+            <Icon name="power_settings_new" size={15} />
+            <span className="nav-line-label">{t("State")}</span>
+            <span className="nav-line-value">
+              <span className={`state-dot ${backendStateTone(endpoint.backendState)}`} />
+              {endpoint.backendState || t("Unknown")}
+            </span>
+          </div>
+          {running && endpoint.self && (
+            <NavLine
+              icon="computer"
+              label={t("This device")}
+              value={peerDisplayName(endpoint.self)}
+              onClick={props.onShowSelf}
+            />
+          )}
+          {running && props.hasExitNodes && (
+            <NavLine
+              icon="router"
+              label={t("Exit node")}
+              value={endpoint.exitNode ? peerDisplayName(endpoint.exitNode) : t("Disabled")}
+              onClick={props.onOpenExitPicker}
+            />
+          )}
+          {endpoint.authURL !== "" && (
+            <>
+              {isHttpUrl(endpoint.authURL) && (
+                <a className="nav-line" href={endpoint.authURL} target="_blank" rel="noreferrer">
+                  <Icon name="open_in_new" size={15} />
+                  <span className="nav-line-label">{t("Open auth URL")}</span>
+                </a>
+              )}
+              <button className="nav-line" onClick={props.onOpenAuthQR}>
+                <Icon name="qr_code" size={15} />
+                <span className="nav-line-label">{t("Show auth URL QR code")}</span>
+              </button>
+            </>
+          )}
         </div>
-        {running && endpoint.self && (
-          <NavLine
-            icon="computer"
-            label={t("This device")}
-            value={peerDisplayName(endpoint.self)}
-            onClick={props.onShowSelf}
-          />
-        )}
-        {running && props.hasExitNodes && (
-          <NavLine
-            icon="router"
-            label={t("Exit node")}
-            value={endpoint.exitNode ? peerDisplayName(endpoint.exitNode) : t("Disabled")}
-            onClick={props.onOpenExitPicker}
-          />
-        )}
-        {endpoint.authURL !== "" && (
-          <>
-            {isHttpUrl(endpoint.authURL) && (
-              <a className="nav-line" href={endpoint.authURL} target="_blank" rel="noreferrer">
-                <Icon name="open_in_new" size={15} />
-                <span className="nav-line-label">{t("Open auth URL")}</span>
-              </a>
-            )}
-            <button className="nav-line" onClick={props.onOpenAuthQR}>
-              <Icon name="qr_code" size={15} />
-              <span className="nav-line-label">{t("Show auth URL QR code")}</span>
-            </button>
-          </>
-        )}
-      </div>
-    </Card>
+      </Card>
+    </div>
   );
 }
 
@@ -294,19 +290,12 @@ function peerMatches(peer: TailscalePeer, query: string): boolean {
 
 function PeerSections(props: {
   endpoint: TailscaleEndpointStatus;
-  search: string;
   onShowPeer: (id: string) => void;
   onConnectSSH: (peer: TailscalePeer) => void;
 }) {
-  const { t } = useI18n();
-  const query = props.search.trim().toLowerCase();
   const groups = props.endpoint.userGroups
-    .map((group) => ({ group, peers: group.peers.filter((peer) => peerMatches(peer, query)) }))
+    .map((group) => ({ group, peers: group.peers }))
     .filter((entry) => entry.peers.length > 0);
-
-  if (groups.length === 0) {
-    return <EmptyState icon="search">{t("No matching peers")}</EmptyState>;
-  }
 
   return (
     <>
@@ -394,12 +383,13 @@ function PeerDetailBody(props: {
     <>
       {props.isSelf && (props.endpoint.networkName !== "" || canLogout) && (
         <>
-          <div className="drawer-section">{t("Network")}</div>
           {props.endpoint.networkName !== "" && (
-            <DataLine label={t("Network")} value={props.endpoint.networkName} />
+            <DetailSection title={t("Network")}>
+              <DataLine label={t("Network")} value={props.endpoint.networkName} />
+            </DetailSection>
           )}
           {canLogout && (
-            <div className="row-actions" style={{ marginTop: 6 }}>
+            <div className="row-actions" style={{ marginTop: 10 }}>
               <button
                 className="button danger small"
                 onClick={() => {
@@ -417,56 +407,55 @@ function PeerDetailBody(props: {
         </>
       )}
 
-      <div className="drawer-section">{t("Addresses")}</div>
-      {peer.dnsName !== "" && (
-        <DataLine label="MagicDNS" value={<CopyValue value={peer.dnsName.replace(/\.$/, "")} />} />
-      )}
-      <DataLine label={t("Hostname")} value={<CopyValue value={peer.hostName} />} />
-      {ipv4 && <DataLine label="IPv4" value={<CopyValue value={ipv4} />} />}
-      {ipv6 && <DataLine label="IPv6" value={<CopyValue value={ipv6} />} />}
+      <DetailSection title={t("Addresses")}>
+        {peer.dnsName !== "" && (
+          <DataLine label="MagicDNS" value={<CopyValue value={peer.dnsName.replace(/\.$/, "")} />} />
+        )}
+        <DataLine label={t("Hostname")} value={<CopyValue value={peer.hostName} />} />
+        {ipv4 && <DataLine label="IPv4" value={<CopyValue value={ipv4} />} />}
+        {ipv6 && <DataLine label="IPv6" value={<CopyValue value={ipv6} />} />}
+      </DetailSection>
 
       {!props.isSelf && peer.online && (
         <PingSection endpoint={props.endpoint} peer={peer} />
       )}
 
-      <div className="drawer-section">{t("Details")}</div>
-      {peer.os !== "" && <DataLine label={t("OS")} value={peer.os} />}
-      <DataLine
-        label={t("Key expiry")}
-        value={
-          peer.expired
-            ? t("Expired")
-            : peer.keyExpiry > 0n
-              ? formatRelativeTime(Number(peer.keyExpiry) * 1000, now, language)
-              : t("Disabled")
-        }
-      />
-      {!peer.online && peer.lastSeen > 0n && (
+      <DetailSection title={t("Details")}>
+        {peer.os !== "" && <DataLine label={t("OS")} value={peer.os} />}
         <DataLine
-          label={t("Last seen")}
-          value={formatRelativeTime(Number(peer.lastSeen) * 1000, now, language)}
+          label={t("Key expiry")}
+          value={
+            peer.expired
+              ? t("Expired")
+              : peer.keyExpiry > 0n
+                ? formatRelativeTime(Number(peer.keyExpiry) * 1000, now, language)
+                : t("Disabled")
+          }
         />
-      )}
-      {peer.exitNodeOption && (
-        <DataLine label={t("Exit node")} value={peer.exitNode ? t("Active") : t("Available")} />
-      )}
-      {peer.shareeNode && <DataLine label={t("Shared in")} value={t("Yes")} />}
+        {!peer.online && peer.lastSeen > 0n && (
+          <DataLine
+            label={t("Last seen")}
+            value={formatRelativeTime(Number(peer.lastSeen) * 1000, now, language)}
+          />
+        )}
+        {peer.exitNodeOption && (
+          <DataLine label={t("Exit node")} value={peer.exitNode ? t("Active") : t("Available")} />
+        )}
+        {peer.shareeNode && <DataLine label={t("Shared in")} value={t("Yes")} />}
+      </DetailSection>
       {sshAvailable && (
-        <>
-          <hr className="divider" />
-          <div className="row-actions">
-            {sshRemembered && (
-              <button className="button" onClick={props.onEditSSH}>
-                <Icon name="edit" size={13} />
-                {t("Edit")}
-              </button>
-            )}
-            <button className="button primary" onClick={props.onConnectSSH}>
-              <Icon name="terminal" size={13} />
-              {t("Connect via SSH")}
+        <div className="row-actions" style={{ marginTop: 14 }}>
+          {sshRemembered && (
+            <button className="button" onClick={props.onEditSSH}>
+              <Icon name="edit" size={13} />
+              {t("Edit SSH Configuration")}
             </button>
-          </div>
-        </>
+          )}
+          <button className="button primary" onClick={props.onConnectSSH}>
+            <Icon name="terminal" size={13} />
+            {t("Connect via SSH")}
+          </button>
+        </div>
       )}
     </>
   );
@@ -503,19 +492,19 @@ function PingSection(props: { endpoint: TailscaleEndpointStatus; peer: Tailscale
     });
 
   return (
-    <>
-      <div className="drawer-section" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-        {t("Ping")}
+    <DetailSection
+      title={t("Ping")}
+      accessory={
         <button
           className="icon-button"
-          style={{ marginInlineStart: "auto" }}
           title={running ? t("Stop") : t("Start")}
           onClick={() => (running ? stop() : start())}
         >
           <Icon name={running ? "stop" : "play_arrow"} size={13} />
         </button>
-      </div>
-      {error !== "" && <div className="hint" style={{ color: "var(--danger)" }}>{error}</div>}
+      }
+    >
+      {error !== "" && <div className="hint" style={{ color: "var(--danger)", padding: "9px 0" }}>{error}</div>}
       {latest && (
         <>
           <DataLine
@@ -528,15 +517,20 @@ function PingSection(props: { endpoint: TailscaleEndpointStatus; peer: Tailscale
           {latest.isDirect && latest.endpoint !== "" && (
             <DataLine label={t("Endpoint")} value={latest.endpoint} />
           )}
-          <Sparkline
-            data={history}
-            color={latest.isDirect ? "var(--good)" : "var(--info)"}
-            height={56}
-          />
+          <div style={{ margin: "6px 0 8px" }}>
+            <Sparkline
+              data={history}
+              color={latest.isDirect ? "var(--good)" : "var(--info)"}
+              height={56}
+            />
+          </div>
         </>
       )}
-      {!latest && !running && <div className="hint">{t("No data")}</div>}
-    </>
+      {running && !latest && error === "" && (
+        <div className="hint" style={{ padding: "9px 0" }}>{t("Connecting...")}</div>
+      )}
+      {!latest && !running && <div className="hint" style={{ padding: "9px 0" }}>{t("No data")}</div>}
+    </DetailSection>
   );
 }
 
@@ -617,7 +611,7 @@ function SSHPrompt(props: {
 
   return (
     <Dialog onClose={props.onCancel}>
-      <h3>{t("Connect via SSH")}</h3>
+      <h3>{t("SSH Configuration")}</h3>
       <div className="hint" style={{ marginBottom: 12 }}>{peerDisplayName(props.peer)}</div>
       <Field label={t("Username")}>
         <input
