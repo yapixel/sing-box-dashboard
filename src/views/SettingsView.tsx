@@ -13,7 +13,7 @@ import { navigate, type AccentPreference, type ThemePreference } from "../app/co
 import { LanguageSelect, useI18n } from "../app/i18n";
 import { Icon } from "../components/Icon";
 import { ReachabilityIndicator, useServerReachability } from "../components/ReachabilityIndicator";
-import { Dialog, Field, NavRow, Spinner, ThemeMenu, ThemeSelect } from "../components/ui";
+import { Dialog, Field, NavRow, Select, Spinner, ThemeMenu, ThemeSelect } from "../components/ui";
 import {
   DEFAULT_DARK_THEME_NAME,
   DEFAULT_LIGHT_THEME_NAME,
@@ -112,7 +112,7 @@ export function PreferencesView(props: {
           <div className="settings-row">
             <Icon name="language" size={15} />
             <span className="settings-row-label">{t("Language")}</span>
-            <LanguageSelect className="select inline" />
+            <LanguageSelect />
           </div>
         </div>
         <div>
@@ -253,32 +253,24 @@ export function TerminalConfigurationView() {
           <div className="settings-list">
             <div className="settings-row">
               <span className="settings-row-label">{t("Font family")}</span>
-              <select
-                className="select inline"
+              <Select
+                inline
+                options={[
+                  { value: "", label: t("Default") },
+                  ...FONT_FAMILIES.map((family) => ({ value: family, label: family })),
+                ]}
                 value={config.fontFamily}
-                onChange={(event) => update({ fontFamily: event.target.value })}
-              >
-                <option value="">{t("Default")}</option>
-                {FONT_FAMILIES.map((family) => (
-                  <option key={family} value={family}>
-                    {family}
-                  </option>
-                ))}
-              </select>
+                onChange={(fontFamily) => update({ fontFamily })}
+              />
             </div>
             <div className="settings-row">
               <span className="settings-row-label">{t("Font size")}</span>
-              <select
-                className="select inline"
+              <Select
+                inline
+                options={FONT_SIZES.map((size) => ({ value: size, label: String(size) }))}
                 value={config.fontSize}
-                onChange={(event) => update({ fontSize: Number(event.target.value) })}
-              >
-                {FONT_SIZES.map((size) => (
-                  <option key={size} value={size}>
-                    {size}
-                  </option>
-                ))}
-              </select>
+                onChange={(fontSize) => update({ fontSize })}
+              />
             </div>
           </div>
         </div>

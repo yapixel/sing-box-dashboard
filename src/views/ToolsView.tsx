@@ -13,7 +13,7 @@ import { navigate, useApi } from "../app/context";
 import { useStreamingAction } from "../app/hooks";
 import { useI18n } from "../app/i18n";
 import { Icon } from "../components/Icon";
-import { Badge, Card, DataLine, Field, NavRow, Spinner, Toggle } from "../components/ui";
+import { Badge, Card, DataLine, Dialog, Field, NavRow, Select, Spinner, Toggle } from "../components/ui";
 import {
   ServiceStatus_Type,
   type NetworkQualityTestProgress,
@@ -97,22 +97,74 @@ function OutboundPicker(props: { value: string; onChange: (value: string) => voi
   const api = useApi();
   const { t } = useI18n();
   const outbounds = useStream(api.outbounds);
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+
+  const query = search.trim().toLowerCase();
+  const filtered = outbounds.data.outbounds.filter(
+    (outbound) =>
+      query === "" ||
+      outbound.tag.toLowerCase().includes(query) ||
+      proxyDisplayType(outbound.type).toLowerCase().includes(query),
+  );
+
+  const select = (value: string) => {
+    setOpen(false);
+    if (value !== props.value) {
+      props.onChange(value);
+    }
+  };
+
   return (
     <Field label={t("Outbound")}>
-      <select
+      <button
+        type="button"
         className="select"
-        value={props.value}
+        aria-haspopup="dialog"
+        aria-expanded={open}
         disabled={props.disabled}
-        onChange={(event) => props.onChange(event.target.value)}
+        onClick={() => {
+          setSearch("");
+          setOpen(true);
+        }}
       >
-        <option value="">{t("Default")}</option>
-        {outbounds.data.outbounds.map((outbound) => (
-          <option key={outbound.tag} value={outbound.tag}>
-            {outbound.tag} ({proxyDisplayType(outbound.type)}
-            {outbound.urlTestDelay > 0 ? `, ${outbound.urlTestDelay}ms` : ""})
-          </option>
-        ))}
-      </select>
+        <span className="select-value">{props.value === "" ? t("Default") : props.value}</span>
+      </button>
+      {open && (
+        <Dialog onClose={() => setOpen(false)}>
+          <h3>{t("Outbound")}</h3>
+          <Field label={t("Search")}>
+            <input
+              className="input"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              autoFocus
+            />
+          </Field>
+          <button className="peer-row" onClick={() => select("")}>
+            <span className="peer-name">{t("Default")}</span>
+            {props.value === "" && (
+              <span className="badges">
+                <Icon name="check" size={14} />
+              </span>
+            )}
+          </button>
+          {filtered.map((outbound) => (
+            <button className="peer-row" key={outbound.tag} onClick={() => select(outbound.tag)}>
+              <span className="peer-name">{outbound.tag}</span>
+              <span className="peer-address">
+                {proxyDisplayType(outbound.type)}
+                {outbound.urlTestDelay > 0 ? ` · ${outbound.urlTestDelay}ms` : ""}
+              </span>
+              {props.value === outbound.tag && (
+                <span className="badges">
+                  <Icon name="check" size={14} />
+                </span>
+              )}
+            </button>
+          ))}
+        </Dialog>
+      )}
     </Field>
   );
 }
@@ -178,16 +230,15 @@ export function NetworkQualityView() {
           </Field>
           <OutboundPicker value={outboundTag} onChange={setOutboundTag} disabled={running} />
           <Field label={t("Max runtime")}>
-            <select
-              className="select"
+            <Select
+              options={[20, 30, 60].map((count) => ({
+                value: count,
+                label: t("{count} seconds", { count }),
+              }))}
               value={maxRuntime}
-              onChange={(event) => setMaxRuntime(Number(event.target.value))}
+              onChange={setMaxRuntime}
               disabled={running}
-            >
-              <option value={20}>{t("{count} seconds", { count: 20 })}</option>
-              <option value={30}>{t("{count} seconds", { count: 30 })}</option>
-              <option value={60}>{t("{count} seconds", { count: 60 })}</option>
-            </select>
+            />
           </Field>
           <Toggle label={t("Serial")} value={serial} onChange={setSerial} disabled={running} />
           <Toggle label="HTTP/3" value={http3} onChange={setHttp3} disabled={running} />

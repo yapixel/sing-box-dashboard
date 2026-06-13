@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useId, useMemo, useRef, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { encode as encodeQR } from "uqr";
 
 import type { DelayTone } from "../api/format";
@@ -252,6 +252,112 @@ export function ThemeMenu(props: {
   );
 }
 
+export function Select<T extends string | number>(props: {
+  options: { value: T; label: ReactNode }[];
+  value: T;
+  onChange: (value: T) => void;
+  disabled?: boolean;
+  inline?: boolean;
+  placeholder?: ReactNode;
+}) {
+  const [open, setOpen] = useState(false);
+  const [openUp, setOpenUp] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+  useDismiss(ref, open, () => setOpen(false));
+
+  const selected = props.options.find((option) => option.value === props.value);
+
+  const toggle = () => {
+    if (!open && ref.current) {
+      const rect = ref.current.getBoundingClientRect();
+      const below = window.innerHeight - rect.bottom;
+      setOpenUp(below < 260 && rect.top > below);
+    }
+    setOpen(!open);
+  };
+
+  const select = (value: T) => {
+    setOpen(false);
+    if (value !== props.value) {
+      props.onChange(value);
+    }
+  };
+
+  const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (!open || (event.key !== "ArrowDown" && event.key !== "ArrowUp")) {
+      return;
+    }
+    event.preventDefault();
+    const items = Array.from(
+      listRef.current?.querySelectorAll<HTMLButtonElement>('[role="option"]') ?? [],
+    );
+    if (items.length === 0) {
+      return;
+    }
+    const current = items.indexOf(document.activeElement as HTMLButtonElement);
+    const next =
+      current === -1
+        ? event.key === "ArrowDown"
+          ? 0
+          : items.length - 1
+        : current + (event.key === "ArrowDown" ? 1 : -1);
+    items[(next + items.length) % items.length]?.focus();
+  };
+
+  return (
+    <div
+      className={props.inline ? "menu-anchor select-anchor inline" : "menu-anchor select-anchor"}
+      ref={ref}
+      onKeyDown={onKeyDown}
+    >
+      <button
+        type="button"
+        className={props.inline ? "select inline" : "select"}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        disabled={props.disabled}
+        onClick={toggle}
+      >
+        <span className={selected ? "select-value" : "select-value select-placeholder"}>
+          {selected ? selected.label : props.placeholder}
+        </span>
+      </button>
+      {open && (
+        <div
+          className={
+            props.inline
+              ? openUp
+                ? "menu select-menu grow open-up"
+                : "menu select-menu grow"
+              : openUp
+                ? "menu select-menu open-up"
+                : "menu select-menu"
+          }
+          role="listbox"
+          ref={listRef}
+        >
+          {props.options.map((option) => (
+            <button
+              key={String(option.value)}
+              type="button"
+              role="option"
+              aria-selected={option.value === props.value}
+              className="menu-item"
+              onClick={() => select(option.value)}
+            >
+              <span className="menu-check">
+                {option.value === props.value && <Icon name="check" size={13} />}
+              </span>
+              {option.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function AdaptiveSegmented(props: {
   options: { value: string; label: string }[];
   value: string;
@@ -305,17 +411,7 @@ export function AdaptiveSegmented(props: {
           ))}
         </div>
       ) : (
-        <select
-          className="select"
-          value={props.value}
-          onChange={(event) => props.onChange(event.target.value)}
-        >
-          {props.options.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
+        <Select options={props.options} value={props.value} onChange={props.onChange} />
       )}
     </div>
   );

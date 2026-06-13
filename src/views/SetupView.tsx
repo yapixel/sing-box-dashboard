@@ -184,7 +184,7 @@ export function SetupView(props: {
           </div>
           <div className="settings-row">
             <span className="settings-row-label">{t("Language")}</span>
-            <LanguageSelect className="select inline" />
+            <LanguageSelect />
           </div>
         </div>
       </div>

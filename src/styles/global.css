@@ -1076,6 +1076,49 @@ a:hover {
   box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
+button.select {
+  display: inline-flex;
+  align-items: center;
+  text-align: start;
+}
+
+button.select[aria-expanded="true"] {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+button.select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.select-value {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.select-placeholder {
+  color: var(--text-faint);
+}
+
+.select-anchor.inline {
+  display: inline-block;
+}
+
+.menu.select-menu {
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.menu.select-menu.grow {
+  width: max-content;
+  min-width: 100%;
+  max-width: min(320px, 86vw);
+}
+
 .toggle-line {
   display: flex;
   align-items: center;

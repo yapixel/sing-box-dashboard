@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 
+import { Select } from "../components/ui";
 import { LANGUAGES, TRANSLATIONS, type Language, type MessageKey, type PluralForms } from "./translations";
 
 export type { Language, MessageKey };
@@ -133,20 +134,11 @@ export function I18nProvider(props: { children: ReactNode }) {
   return <I18nContext.Provider value={value}>{props.children}</I18nContext.Provider>;
 }
 
-export function LanguageSelect(props: { className?: string }) {
+export function LanguageSelect() {
   const { t, preference, setPreference } = useI18n();
-  return (
-    <select
-      className={props.className ?? "select"}
-      value={preference}
-      onChange={(event) => setPreference(event.target.value as LanguagePreference)}
-    >
-      <option value="auto">{t("System")}</option>
-      {LANGUAGES.map((language) => (
-        <option key={language.value} value={language.value}>
-          {language.label}
-        </option>
-      ))}
-    </select>
-  );
+  const options: { value: LanguagePreference; label: string }[] = [
+    { value: "auto", label: t("System") },
+    ...LANGUAGES.map((language) => ({ value: language.value, label: language.label })),
+  ];
+  return <Select inline options={options} value={preference} onChange={setPreference} />;
 }
