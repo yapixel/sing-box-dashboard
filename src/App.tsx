@@ -154,6 +154,16 @@ export function App() {
     return () => window.removeEventListener("hashchange", onHashChange);
   }, []);
 
+  const activeServer =
+    serversState.servers.find((server) => server.id === serversState.activeId) ?? null;
+
+  useEffect(() => {
+    if (!activeServer && location.hash !== "") {
+      history.replaceState(null, "", location.pathname + location.search);
+      setRoute(routeFromHash());
+    }
+  }, [activeServer]);
+
   const updateServers = (next: ServersState) => {
     saveServersState(next);
     setServersState(next);
@@ -168,9 +178,6 @@ export function App() {
     saveAccentPreference(next);
     setAccent(next);
   };
-
-  const activeServer =
-    serversState.servers.find((server) => server.id === serversState.activeId) ?? null;
 
   return (
     <I18nProvider>

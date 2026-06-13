@@ -5,6 +5,7 @@ import {
   normalizeServerUrl,
   removeServer,
   saveServersState,
+  serverConnectUrl,
   serverDisplayName,
   upsertServer,
   type Server,
@@ -39,13 +40,15 @@ describe("loadServersState", () => {
     expect(loadServersState()).toEqual({ servers: [], activeId: null });
   });
 
-  it("round-trips through saveServersState", () => {
-    const state = {
+  it("round-trips through saveServersState and drops the http:// scheme", () => {
+    saveServersState({
       servers: [{ id: "a", name: "Home", url: "http://10.0.0.1:9090", secret: "s" }],
       activeId: "a",
-    };
-    saveServersState(state);
-    expect(loadServersState()).toEqual(state);
+    });
+    expect(loadServersState()).toEqual({
+      servers: [{ id: "a", name: "Home", url: "10.0.0.1:9090", secret: "s" }],
+      activeId: "a",
+    });
   });
 
   it("survives malformed JSON", () => {
@@ -69,14 +72,14 @@ describe("loadServersState", () => {
     const state = loadServersState();
     expect(state.servers.map((server) => server.id)).toEqual(["a"]);
     expect(state.activeId).toBe("a");
-    expect(state.servers[0]).toEqual({ id: "a", name: "", secret: "", url: "http://10.0.0.1:9090" });
+    expect(state.servers[0]).toEqual({ id: "a", name: "", secret: "", url: "10.0.0.1:9090" });
   });
 
   it("migrates the legacy single-server entry and removes it", () => {
     localStorage.setItem(LEGACY_STORAGE_KEY, JSON.stringify({ url: "http://old.example", secret: "s" }));
     const state = loadServersState();
     expect(state.servers).toHaveLength(1);
-    expect(state.servers[0].url).toBe("http://old.example");
+    expect(state.servers[0].url).toBe("old.example");
     expect(state.servers[0].secret).toBe("s");
     expect(state.activeId).toBe(state.servers[0].id);
     expect(localStorage.getItem(LEGACY_STORAGE_KEY)).toBeNull();
@@ -85,10 +88,21 @@ describe("loadServersState", () => {
 });
 
 describe("normalizeServerUrl", () => {
-  it("adds the scheme and strips trailing slashes", () => {
-    expect(normalizeServerUrl(" 10.0.0.1:9090/ ")).toBe("http://10.0.0.1:9090");
+  it("drops the implied http:// scheme and trailing slashes", () => {
+    expect(normalizeServerUrl(" http://10.0.0.1:9090/ ")).toBe("10.0.0.1:9090");
+    expect(normalizeServerUrl("10.0.0.1:9090/")).toBe("10.0.0.1:9090");
     expect(normalizeServerUrl("https://example.com//")).toBe("https://example.com");
     expect(normalizeServerUrl("")).toBe("");
+  });
+});
+
+describe("serverConnectUrl", () => {
+  it("re-adds the implied http:// scheme and strips trailing slashes", () => {
+    expect(serverConnectUrl("10.0.0.1:9090")).toBe("http://10.0.0.1:9090");
+    expect(serverConnectUrl(" 10.0.0.1:9090/ ")).toBe("http://10.0.0.1:9090");
+    expect(serverConnectUrl("http://x")).toBe("http://x");
+    expect(serverConnectUrl("https://example.com/")).toBe("https://example.com");
+    expect(serverConnectUrl("")).toBe("");
   });
 });
 
@@ -129,8 +143,11 @@ describe("upsertServer / removeServer", () => {
 
 describe("serverDisplayName", () => {
   it("prefers the name, then the URL host, then the raw URL", () => {
-    expect(serverDisplayName({ id: "a", name: "Home", url: "http://x", secret: "" })).toBe("Home");
-    expect(serverDisplayName({ id: "a", name: "", url: "http://h:9090", secret: "" })).toBe("h:9090");
+    expect(serverDisplayName({ id: "a", name: "Home", url: "x", secret: "" })).toBe("Home");
+    expect(serverDisplayName({ id: "a", name: "", url: "h:9090", secret: "" })).toBe("h:9090");
+    expect(serverDisplayName({ id: "a", name: "", url: "https://example.com", secret: "" })).toBe(
+      "example.com",
+    );
     expect(serverDisplayName({ id: "a", name: "", url: "not a url", secret: "" })).toBe("not a url");
   });
 });

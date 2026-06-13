@@ -1,7 +1,7 @@
 import type { DescMessage, MessageInitShape, MessageShape } from "@bufbuild/protobuf";
 import { create, fromBinary, toBinary } from "@bufbuild/protobuf";
 
-import type { Server } from "./config";
+import { serverConnectUrl, type Server } from "./config";
 
 // Bidirectional gRPC streaming over the improbable-eng/grpc-web
 // "grpc-websockets" subprotocol the sing-box API service accepts.
@@ -33,7 +33,7 @@ export class GrpcWebSocketStream<Req extends DescMessage, Res extends DescMessag
   private status: GrpcStatus | null = null;
 
   constructor(private options: WebSocketStreamOptions<Req, Res>) {
-    const baseUrl = options.config.url.replace(/\/+$/, "").replace(/^http/, "ws");
+    const baseUrl = serverConnectUrl(options.config.url).replace(/^http/, "ws");
     this.socket = new WebSocket(`${baseUrl}/${options.service}/${options.method}`, [
       "grpc-websockets",
     ]);

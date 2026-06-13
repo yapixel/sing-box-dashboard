@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { isLoopbackHost, isOpaqueNetworkError } from "./connectivity";
+import {
+  guessApiBaseUrl,
+  isLoopbackHost,
+  isOpaqueNetworkError,
+  isUnknownServiceError,
+} from "./connectivity";
 
 describe("isOpaqueNetworkError", () => {
   it("matches the per-engine wordings", () => {
@@ -12,6 +17,23 @@ describe("isOpaqueNetworkError", () => {
   it("passes daemon errors through", () => {
     expect(isOpaqueNetworkError("bad secret")).toBe(false);
     expect(isOpaqueNetworkError("Stream ended without a status message")).toBe(false);
+  });
+});
+
+describe("isUnknownServiceError", () => {
+  it("matches a gRPC unimplemented for the daemon service", () => {
+    expect(isUnknownServiceError("[unimplemented] unknown service daemon.StartedService")).toBe(
+      true,
+    );
+    expect(
+      isUnknownServiceError("[unimplemented] unknown service some/prefix/daemon.StartedService"),
+    ).toBe(true);
+  });
+
+  it("ignores other errors", () => {
+    expect(isUnknownServiceError("[unauthenticated] bad secret")).toBe(false);
+    expect(isUnknownServiceError("Failed to fetch")).toBe(false);
+    expect(isUnknownServiceError("[unimplemented] unknown method GetVersion")).toBe(false);
   });
 });
 
@@ -28,5 +50,25 @@ describe("isLoopbackHost", () => {
     expect(isLoopbackHost("192.168.1.2")).toBe(false);
     expect(isLoopbackHost("example.com")).toBe(false);
     expect(isLoopbackHost("127.0.0.1.evil.com")).toBe(false);
+  });
+});
+
+describe("guessApiBaseUrl", () => {
+  it("strips the dashboard subdirectory to the parent path", () => {
+    expect(guessApiBaseUrl("https://host/dashboard/")).toBe("https://host/");
+    expect(guessApiBaseUrl("https://host/dashboard/index.html")).toBe("https://host/");
+    expect(guessApiBaseUrl("http://192.168.1.1:9090/ui/?x=1#/settings")).toBe(
+      "http://192.168.1.1:9090/",
+    );
+  });
+
+  it("strips only one level for nested paths", () => {
+    expect(guessApiBaseUrl("https://host/admin/dashboard/")).toBe("https://host/admin/");
+  });
+
+  it("returns null at the site root", () => {
+    expect(guessApiBaseUrl("https://host/")).toBeNull();
+    expect(guessApiBaseUrl("https://host/index.html")).toBeNull();
+    expect(guessApiBaseUrl("not a url")).toBeNull();
   });
 });

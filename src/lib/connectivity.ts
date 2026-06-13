@@ -13,6 +13,23 @@ export function isOpaqueNetworkError(message: string): boolean {
   );
 }
 
+export function isUnknownServiceError(message: string): boolean {
+  return message.includes("unimplemented") && message.includes("StartedService");
+}
+
+export function guessApiBaseUrl(href: string): string | null {
+  let dir: URL;
+  try {
+    dir = new URL(".", href);
+  } catch {
+    return null;
+  }
+  if (dir.pathname === "/") {
+    return null;
+  }
+  return new URL("..", dir).href;
+}
+
 export function isLoopbackHost(hostname: string): boolean {
   return (
     hostname === "localhost" ||

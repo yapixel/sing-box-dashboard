@@ -14,7 +14,7 @@ import {
   Status,
   TailscaleEndpointStatus,
 } from "../gen/daemon/started_service_pb";
-import type { Server } from "./config";
+import { serverConnectUrl, type Server } from "./config";
 import { StreamStore } from "./stream";
 
 export const STATUS_HISTORY_LENGTH = 30;
@@ -107,7 +107,7 @@ export class DaemonApi {
       StartedService,
       transport ??
         createGrpcWebTransport({
-          baseUrl: config.url,
+          baseUrl: serverConnectUrl(config.url),
           interceptors: config.secret ? [authInterceptor(config.secret)] : [],
         }),
     );

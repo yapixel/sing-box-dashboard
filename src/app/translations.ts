@@ -32,6 +32,8 @@ export const TRANSLATIONS = {
   "Required": { "zh-Hans": "必填", "zh-Hant": "必填", "fa": "الزامی", "ru": "Обязательно" },
   "Connect": { "zh-Hans": "连接", "zh-Hant": "連接", "fa": "اتصال", "ru": "Подключиться" },
   "Connecting...": { "zh-Hans": "连接中...", "zh-Hant": "連接中...", "fa": "در حال اتصال...", "ru": "Подключение..." },
+  "Checking...": { "zh-Hans": "正在检查...", "zh-Hant": "正在檢查...", "fa": "در حال بررسی...", "ru": "Проверка..." },
+  "Unavailable": { "zh-Hans": "不可用", "zh-Hant": "不可用", "fa": "خارج از دسترس", "ru": "Недоступен" },
   "Connection timed out after {seconds} seconds": { "zh-Hans": "连接超时（{seconds} 秒）", "zh-Hant": "連接超時（{seconds} 秒）", "fa": "اتصال پس از {seconds} ثانیه منقضی شد", "ru": "Время ожидания подключения истекло ({seconds} с)" },
   "Stream ended without a status message": { "zh-Hans": "流在未收到状态消息的情况下结束", "zh-Hant": "流在未收到狀態消息的情況下結束", "fa": "جریان بدون پیام وضعیت پایان یافت", "ru": "Поток завершился без сообщения о состоянии" },
   "The browser is offline; check your network connection.": {
@@ -63,6 +65,12 @@ export const TRANSLATIONS = {
     "zh-Hant": "伺服器無法訪問；請檢查地址是否正確、服務是否在運行。",
     "fa": "سرور در دسترس نیست؛ بررسی کنید که نشانی درست و سرویس در حال اجرا باشد.",
     "ru": "Сервер недоступен; проверьте, что адрес верен и служба запущена.",
+  },
+  "This is not a sing-box API service, or the path is incorrect.": {
+    "zh-Hans": "这不是 sing-box API 服务，或路径不正确。",
+    "zh-Hant": "這不是 sing-box API 服務，或路徑不正確。",
+    "fa": "این یک سرویس API مربوط به sing-box نیست، یا مسیر نادرست است.",
+    "ru": "Это не API-сервис sing-box или указан неверный путь.",
   },
 
   "Servers": { "zh-Hans": "服务器", "zh-Hant": "伺服器", "fa": "سرورها", "ru": "Серверы" },

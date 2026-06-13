@@ -12,6 +12,7 @@ import {
 import { navigate, type AccentPreference, type ThemePreference } from "../app/context";
 import { LanguageSelect, useI18n } from "../app/i18n";
 import { Icon } from "../components/Icon";
+import { ReachabilityIndicator, useServerReachability } from "../components/ReachabilityIndicator";
 import { Dialog, Field, NavRow, Spinner, ThemeMenu, ThemeSelect } from "../components/ui";
 import {
   DEFAULT_DARK_THEME_NAME,
@@ -525,6 +526,7 @@ export function ServerDialog(props: {
   const [name, setName] = useState(props.server?.name ?? "");
   const [url, setUrl] = useState(props.server?.url ?? "");
   const [secret, setSecret] = useState(props.server?.secret ?? "");
+  const reachability = useServerReachability(url, secret);
 
   const normalizedUrl = normalizeServerUrl(url);
   const valid = normalizedUrl !== "";
@@ -572,6 +574,7 @@ export function ServerDialog(props: {
             onChange={(event) => setSecret(event.target.value)}
           />
         </Field>
+        <ReachabilityIndicator reachability={reachability} url={url} />
         <div className="row-actions dialog-actions">
           {props.server && props.canDelete && (
             <button
