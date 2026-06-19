@@ -1,4 +1,4 @@
-import { memo, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 
 import type { LogEntry } from "../api/daemon";
 import { pad2 } from "../api/format";
@@ -122,7 +122,7 @@ export function LogsView() {
     }
   };
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (paused) {
       return;
     }
